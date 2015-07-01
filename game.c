@@ -39,7 +39,7 @@ void display(void)
 }
 void myTimerFunc(int value){
 	
-	movePlayer(&player1, mySpecialValue);
+	movePlayer(&player1, &mainStage,mySpecialValue);
 	moveCamera(&mainCamera, &player1, myKeyboardValue);
 
 	glLoadIdentity();

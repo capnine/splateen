@@ -9,10 +9,13 @@ typedef struct{
 }Vector;//ベクトル
 
 void setVector(Vector *vector,double x[3]);
+void setVectorWithXYZ(Vector *vector,double x,double y,double z);
 double innerVector(Vector *a,Vector *b);//内積
 void crossProduct(Vector *settedVector,Vector *a,Vector *b);//外積
 void addVector(Vector *addedVector,Vector *a);//ベクトル和
+void minusVector(Vector *minusedVector,Vector *a);
 double getValueOfVector(Vector *a);//ベクトルの長さ
+double distanceBetweenVectors(Vector *a,Vector *b);
 void changeLengthOfVector(Vector *a, double rate);//rateは何倍にするか
 void getNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);
 void calcNormal(GLdouble v0[3], GLdouble v1[3], GLdouble v2[3], GLdouble n[3]);

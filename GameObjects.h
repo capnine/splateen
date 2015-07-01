@@ -28,8 +28,10 @@ void moveCamera(Camera *camera,Player *player,int command);
 void lookByCamera(Camera *camera);
 
 void initPlayer(Player *player);
-void movePlayer(Player *player,int command);
+void movePlayer(Player *player,Stage *stage,int command);
 void drawPlayer(Player *player);
+int collidionWithCuboid(Cuboid *cuboid,Player *player);
+
 
 void initStage(Stage *stage);
 void drawStage(Stage *stage);

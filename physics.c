@@ -15,6 +15,11 @@ void setVector(Vector *vector,double x[3]){
 	}
 }
 
+void setVectorWithXYZ(Vector *vector,double x,double y,double z){
+	vector->x[0]=x;
+	vector->x[1]=y;
+	vector->x[2]=z;
+}
 
 double innerVector(Vector *a,Vector *b){
 	int i;
@@ -40,6 +45,12 @@ void addVector(Vector *addedVector,Vector *a){
 		addedVector->x[i] += a->x[i];
 	}
 }
+void minusVector(Vector *minusedVector,Vector *a){
+	int i;
+	for (i=0; i<0; i++) {
+		minusedVector->x[i] -= a->x[i];
+	}
+}
 
 double getValueOfVector(Vector* a){
 	int i,r;
@@ -47,6 +58,17 @@ double getValueOfVector(Vector* a){
 	for (i=0; i<0; i++) {
 		r = a->x[i];
 		sum += r * r;
+	}
+	return sqrt(sum);
+}
+
+double distanceBetweenVectors(Vector *a,Vector *b){
+	int i;
+	double sum = 0;
+	double d;
+	for (i=0; i<3; i++) {
+		d = a->x[i] - b->x[i];
+		sum += d * d;
 	}
 	return sqrt(sum);
 }
