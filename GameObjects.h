@@ -1,14 +1,37 @@
-//
-//  GameObjects.h
-//  gltest
-//
-//  Created by Sakurayama Kazuhiro on 2015/07/02.
-//  Copyright (c) 2015年 evistream. All rights reserved.
-//
-
 #ifndef __gltest__GameObjects__
 #define __gltest__GameObjects__
 
-#include <stdio.h>
+#include "physics.h"
+#include "material.h"
+
+typedef struct {
+	double distance;
+	Vector position;
+	Vector pointLookedAt;
+	Vector head;
+}Camera;
+
+typedef struct{
+	int state;
+	Vector position;
+	double height;
+	double radius;
+}Player;
+
+typedef struct {
+	Cuboid cuboids[10];
+	int numberOfCuboid;//直方体の数
+}Stage;
+
+void initCamera(Camera *camera,Player *player);
+void moveCamera(Camera *camera,Player *player,int command);
+void lookByCamera(Camera *camera);
+
+void initPlayer(Player *player);
+void movePlayer(Player *player,int command);
+void drawPlayer(Player *player);
+
+void initStage(Stage *stage);
+void drawStage(Stage *stage);
 
 #endif /* defined(__gltest__GameObjects__) */

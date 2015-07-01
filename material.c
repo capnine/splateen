@@ -1,10 +1,29 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
 #include <math.h>
-#include "head.h"
 #include "physics.h"
 #include "material.h"
+
+GLfloat colors[][4] = {
+	{ 1.0, 1.0, 1.0, 1.0 },
+	{ 1.0, 0.0, 0.0, 1.0 },
+	{ 0.0, 1.0, 0.0, 1.0 },
+	{ 0.0, 0.0, 1.0, 1.0 },
+	{ 1.0, 1.0, 0.0, 1.0 },
+	{ 1.0, 0.0, 1.0, 1.0 },
+	{ 0.0, 1.0, 1.0, 1.0 },
+	{ 0.7, 0.7, 0.7, 1.0 },
+	{ 0.0, 0.0, 0.0, 1.0 } };
+
+
+
+////////////////////////
+/*       Cuboid       */
+////////////////////////
+
 
 int normalFace[6][4]={
 	{0,1,2,3},
@@ -31,16 +50,17 @@ void setNode(Cuboid *cuboid){
 	
 	for(i=0;i<8;i++){
 		for(j=0;j<3;j++){
-			cuboid->node[i][j]=(double)cuboid->size3d[j]*vector[i][j] + cuboid->position3d[j];
+			cuboid->node[i][j]=(double)cuboid->size3d[j]*vector[i][j];
 		}
 	}
 }
 
 void initCuboid(Cuboid *cuboid){
 	int i,j;
-	cuboid->position3d[0]=0.0;
-	cuboid->position3d[1]=0.0;
-	cuboid->position3d[2]=0.0;
+	double* posi = cuboid->position.x;
+	posi[0]=0.0;
+	posi[1]=0.0;
+	posi[2]=0.0;
 	cuboid->size3d[0]=1.0;
 	cuboid->size3d[1]=1.0;
 	cuboid->size3d[2]=1.0;
@@ -52,6 +72,7 @@ void initCuboid(Cuboid *cuboid){
 			cuboid->face[i][j]=normalFace[i][j];
 		}
 	}
+	
 }
 
 void setSize3d(Cuboid *cuboid,double x,double y,double z){
@@ -62,23 +83,26 @@ void setSize3d(Cuboid *cuboid,double x,double y,double z){
 }
 
 void setPosition3d(Cuboid *cuboid,double x,double y,double z){
-	cuboid->position3d[0]=x;
-	cuboid->position3d[1]=y;
-	cuboid->position3d[2]=z;
+	double* posi = cuboid->position.x;
+	posi[0]=x;
+	posi[1]=y;
+	posi[2]=z;
 	setNode(cuboid);
 }
 
 void drawCuboid(Cuboid *cuboid){
 	int i, j,k;
+	double *posi;
 	GLdouble v[4][3];
 	GLdouble normal[3];
 
 	glPushMatrix();
-
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, color[GRAY]);//ŠDF
-	glMaterialfv(GL_FRONT, GL_AMBIENT, color[BLACK]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, color[WHITE]);
+	posi = cuboid->position.x;
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[GRAY]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
+//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glTranslated(posi[0], posi[1], posi[2]);
 	for (i = 0; i < 6; i++){
 		glBegin(GL_QUADS);
 		for (j = 0; j < 4; j++){
@@ -92,3 +116,15 @@ void drawCuboid(Cuboid *cuboid){
 
 	glPopMatrix();
 }
+
+void initNode(Node *node, double x[3]){
+	setVector(&node->position, x);
+}
+
+
+
+
+
+
+
+

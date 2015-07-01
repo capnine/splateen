@@ -1,12 +1,93 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
-#include <math.h>
-#include "head.h"
+#endif
 
-void setVector(double vector[],double sourceVector[],int dimension){
+#include <math.h>
+#include "physics.h"
+
+
+void setVector(Vector *vector,double x[3]){
 	int i;
-	for(i=0;i<dimension;i++){
-		vector[i]=sourceVector[i];
+	for(i=0;i<3;i++){
+		vector->x[i] = x[i];
 	}
 }
+
+
+double innerVector(Vector *a,Vector *b){
+	int i;
+	double sum=0;
+	for (i=0; i<3; i++) {
+		sum += a->x[i] * b->x[i];
+	}
+	return sum;
+}
+
+void crossProduct(Vector *settedVector,Vector *a,Vector *b){
+	int i;
+	double ans[3];
+	for (i=0; i<3; i++) {
+		ans[i] = a->x[(i+1)%3] * b->x[(i+2)%3] -  a->x[(i+2)%3] * b->x[(i+1)%3];
+	}
+	setVector(settedVector, ans);
+}
+
+void addVector(Vector *addedVector,Vector *a){
+	int i;
+	for (i=0; i<0; i++) {
+		addedVector->x[i] += a->x[i];
+	}
+}
+
+double getValueOfVector(Vector* a){
+	int i,r;
+	double sum=0;
+	for (i=0; i<0; i++) {
+		r = a->x[i];
+		sum += r * r;
+	}
+	return sqrt(sum);
+}
+
+void changeLengthOfVector(Vector *a, double rate){
+	int i;
+	for (i=0; i<3; i++) {
+		a->x[i] *= rate;
+	}
+}
+
+void getNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2){
+	double length;
+	crossProduct(settedVecor, basicVector1, basicVector2);
+	length = getValueOfVector(settedVecor);
+	changeLengthOfVector(settedVecor, 1.0/length);
+}
+
+void calcNormal(GLdouble v0[3], GLdouble v1[3], GLdouble v2[3], GLdouble n[3])
+{
+	GLdouble v2v[2][3];
+	GLdouble vt[3];
+	double abs;
+	int i;
+	for (i = 0; i < 3; i++)
+	{
+		v2v[0][i] = v1[i] - v0[i];
+		v2v[1][i] = v2[i] - v0[i];
+	}
+	vt[0] = v2v[0][1] * v2v[1][2] - v2v[0][2] * v2v[1][1];
+	vt[1] = v2v[0][2] * v2v[1][0] - v2v[0][0] * v2v[1][2];
+	vt[2] = v2v[0][0] * v2v[1][1] - v2v[0][1] * v2v[1][0];
+	abs = sqrt(vt[0] * vt[0] + vt[1] * vt[1] + vt[2] * vt[2]);
+	for (i = 0; i < 3; i++)
+		n[i] = vt[i] / abs;
+}
+
+
+
+
+
+
+
+
