@@ -75,20 +75,27 @@ void initCuboid(Cuboid *cuboid){
 	
 }
 
-void setSize3d(Cuboid *cuboid,double x,double y,double z){
+void setCuboidSize(Cuboid *cuboid,double x,double y,double z){
 	cuboid->size3d[0]=x;
 	cuboid->size3d[1]=y;
 	cuboid->size3d[2]=z;
 	setNode(cuboid);
 }
 
-void setPosition3d(Cuboid *cuboid,double x,double y,double z){
+void setCuboidPosition(Cuboid *cuboid,double x,double y,double z){
 	double* posi = cuboid->position.x;
 	posi[0]=x;
 	posi[1]=y;
 	posi[2]=z;
 	setNode(cuboid);
 }
+
+//void setCuboidParameter(Cuboid *cuboid){
+//	int i;
+//	for (i=0; i<6; i++) {
+//		setVector(cuboid->paintableFaces[i].face.zeroNode,
+//	}
+//}
 
 void drawCuboid(Cuboid *cuboid){
 	int i, j,k;

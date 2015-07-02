@@ -14,6 +14,7 @@ GLfloat pos1[] = { 5.0, 5.0, 5.0, 1.0 };
 Camera mainCamera;
 Player player1;
 Stage mainStage;
+ActionFlag af;
 
 void idle(void)
 {
@@ -39,8 +40,10 @@ void display(void)
 }
 void myTimerFunc(int value){
 	
-	movePlayer(&player1, &mainStage,mySpecialValue);
-	moveCamera(&mainCamera, &player1, myKeyboardValue);
+	getActionFlag(&af, mySpecialValue, myKeyboardValue);
+	movePlayer(&player1, &mainStage,&af);
+	moveCamera(&mainCamera, &player1);
+	movePlayerLookAngle(&player1, &af);
 
 	glLoadIdentity();
 	
@@ -56,7 +59,7 @@ void init(void){
 	glCullFace(GL_BACK);
 	
 	glutKeyboardFunc(myKeyboardFunc);
-	glutKeyboardFunc(myKeyboardUpFunc);
+	glutKeyboardUpFunc(myKeyboardUpFunc);
 	glutSpecialFunc(mySpcialFunc);
 	glutSpecialUpFunc(mySpcialUpFunc);
 
@@ -67,6 +70,7 @@ void init(void){
 	glEnable(GL_LIGHT1);
 	
 	initController();
+	initActionFlag(&af);
 	initPlayer(&player1);
 	initCamera(&mainCamera, &player1);
 	initStage(&mainStage);

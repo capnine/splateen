@@ -5,6 +5,7 @@
 #endif
 
 #include <math.h>
+#include <stdio.h>
 #include "physics.h"
 
 
@@ -41,13 +42,13 @@ void crossProduct(Vector *settedVector,Vector *a,Vector *b){
 
 void addVector(Vector *addedVector,Vector *a){
 	int i;
-	for (i=0; i<0; i++) {
+	for (i=0; i<3; i++) {
 		addedVector->x[i] += a->x[i];
 	}
 }
 void minusVector(Vector *minusedVector,Vector *a){
 	int i;
-	for (i=0; i<0; i++) {
+	for (i=0; i<3; i++) {
 		minusedVector->x[i] -= a->x[i];
 	}
 }
@@ -55,7 +56,7 @@ void minusVector(Vector *minusedVector,Vector *a){
 double getValueOfVector(Vector* a){
 	int i,r;
 	double sum=0;
-	for (i=0; i<0; i++) {
+	for (i=0; i<3; i++) {
 		r = a->x[i];
 		sum += r * r;
 	}
@@ -104,6 +105,22 @@ void calcNormal(GLdouble v0[3], GLdouble v1[3], GLdouble v2[3], GLdouble n[3])
 	abs = sqrt(vt[0] * vt[0] + vt[1] * vt[1] + vt[2] * vt[2]);
 	for (i = 0; i < 3; i++)
 		n[i] = vt[i] / abs;
+}
+
+void rotateVectorInXY(Vector *rotatedVector,double angle){
+	Vector buf;
+	double theta = 2*PI*angle/360.0;
+	setVector(&buf, rotatedVector->x);
+	rotatedVector->x[0]= cos(theta) * buf.x[0] - sin(theta) * buf.x[1];
+	rotatedVector->x[1]= sin(theta) * buf.x[0] + cos(theta) * buf.x[1];
+}
+
+void printVector(Vector *a){
+	int i;
+	for (i=0; i<3; i++) {
+		printf("%4.2f\t",a->x[i]);
+	}
+	printf("\n");
 }
 
 

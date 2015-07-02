@@ -3,6 +3,7 @@
 
 #define PI 3.14159
 #define MARGIN 0.001
+#define PHYSICS_G (9.8*0.01)
 
 typedef struct{
 	double x[3];
@@ -19,4 +20,6 @@ double distanceBetweenVectors(Vector *a,Vector *b);
 void changeLengthOfVector(Vector *a, double rate);//rateは何倍にするか
 void getNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);
 void calcNormal(GLdouble v0[3], GLdouble v1[3], GLdouble v2[3], GLdouble n[3]);
+void rotateVectorInXY(Vector *rotatedVector,double angle);
+void printVector(Vector *a);
 #endif

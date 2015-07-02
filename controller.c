@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #endif
 #include "controller.h"
+#include <stdio.h>
 
 int mySpecialValue;
 int myKeyboardValue;
@@ -36,24 +37,25 @@ void myKeyboardFunc(unsigned char key, int x, int y){
 void myKeyboardUpFunc(unsigned char key, int x, int y){
 	switch (key){
 		case ' ':
-			myKeyboardValue &= 1 << 0;
+			myKeyboardValue &= ~(1 << 0);
 			break;
 		case 'w':
-			myKeyboardValue &= 1 << 1;
+			myKeyboardValue &= ~(1 << 1);
 			break;
 		case 'a':
-			myKeyboardValue &= 1 << 2;
+			myKeyboardValue &= ~(1 << 2);
 			break;
 		case 'd':
-			myKeyboardValue &= 1 << 3;
+			myKeyboardValue &= ~(1 << 3);
 			break;
 		case 's':
-			myKeyboardValue &= 1 << 4;
+			myKeyboardValue &= ~(1 << 4);
 			break;
 	}
 }
 
 void mySpcialFunc(int key, int x, int y){
+//	printf("%d\n",key);
 	switch (key){
 		case GLUT_KEY_UP:
 			mySpecialValue |= 1 << 0;//mySpecialValueÇÃ1bitñ⁄Ç1Ç…Ç∑ÇÈ

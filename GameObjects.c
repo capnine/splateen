@@ -34,16 +34,15 @@ void initCamera(Camera *camera,Player *player){
 	
 }
 
-void moveCamera(Camera *camera,Player *player,int command){
-	int i;
-	double x[3];
-	camera->distance = 10;
-	for (i=0; i<3; i++) {
-		x[i] = player->position.x[i];
-	}
-	x[1] -= 10;
-	x[2] += 2;
-	setVector(&camera->position, x);
+void moveCamera(Camera *camera,Player *player){
+	double x[3] = {10,0,2};
+	Vector vectorToCameraFromPlayer;
+	
+	setVector(&vectorToCameraFromPlayer, x);
+	rotateVectorInXY(&vectorToCameraFromPlayer, player->lookAngleXY+180);
+	
+	setVector(&camera->position, player->position.x);
+	addVector(&camera->position, &vectorToCameraFromPlayer);
 	setVector(&camera->pointLookedAt, player->position.x);
 }
 
@@ -66,34 +65,39 @@ void lookByCamera(Camera *camera){
 
 
 void initPlayer(Player *player){
-	double x[3]={0,0,0.5};
+	double x1[3]={0,0,0.5};
+	double x2[3]={0,0,0};
+	double x3[3]={0,0,-PHYSICS_G};
 	player->height = 1.0;
 	player->radius = 0.3;
 	player->state = 0;
-	setVector(&player->position, x);
+	setVector(&player->position, x1);
+	setVector(&player->velocity, x2);
+	setVector(&player->acceleration, x3);
+	player->lookAngleXY = 90;
+	player->lookAngleZ = -10;
 }
 
-void movePlayer(Player *player,Stage *stage,int command){
+
+void setPlayerVelocity(Player *player){
+	addVector(&player->velocity, &player->acceleration);
+}
+
+void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	int i;
 	char collision_flag=0;
+	double zero[3] = {0,0,0};
 	double velocity;
-	Vector nowPosition;
-	double *nextPosition;
-	char up_flag;
-	char left_flag;
-	char right_flag;
-	char down_flag;
+	Vector nowPosition;//衝突判定後からの復元用
+	Vector motionVector;//入力による移動ベクトル
 	
-	up_flag		= command & (1 << 0);
-	left_flag	= command & (1 << 1);
-	right_flag	= command & (1 << 2);
-	down_flag	= command & (1 << 3);
-	
-	setVector(&nowPosition, player->position.x);
-	nextPosition = player->position.x;
+	//入力による移動
+	setVector(&nowPosition, player->position.x);//復元用バッファ
+	setVector(&motionVector, zero);
 	
 	switch (player->state) {
 		case 0:
+		case 1:
 			velocity = 0.1;
 			break;
 		default:
@@ -101,22 +105,25 @@ void movePlayer(Player *player,Stage *stage,int command){
 			break;
 	}
 	
-	if (up_flag) {
-		nextPosition[1] += velocity;
+	if (af->move_up) {
+		motionVector.x[0] += velocity;
 	}
-	if (down_flag) {
-		nextPosition[1] -= velocity;
+	if (af->move_down) {
+		motionVector.x[0] -= velocity;
 	}
-	if (right_flag) {
-		nextPosition[0] += velocity;
+	if (af->move_right) {
+		motionVector.x[1] -= velocity;
 	}
-	if (left_flag) {
-		nextPosition[0] -= velocity;
+	if (af->move_left) {
+		motionVector.x[1] += velocity;
 	}
+	
+	rotateVectorInXY(&motionVector, player->lookAngleXY);
+	addVector(&player->position, &motionVector);
 	
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		if(collidionWithCuboid(&stage->cuboids[i], player)){
-			collision_flag = 1;
+			collision_flag ++;
 //			printf("%d\n",i);
 			break;
 		}
@@ -126,7 +133,50 @@ void movePlayer(Player *player,Stage *stage,int command){
 		setVector(&player->position, nowPosition.x);
 	}
 	
+//	printf("\nbefore jump\n");
+//	printPlayer(player);
+	
+	//自然物理による移動(落下)
+	collision_flag = 0;
+	setVector(&nowPosition, player->position.x);
+	if (af->jump && (player->state == 0)) {
+		player->state = 1;
+		player->velocity.x[2] += 1.0;
+//		printf("%f",player->velocity.x[2]);
+	}
+	setPlayerVelocity(player);
+	addVector(&player->position, &player->velocity);
+	for (i=0; i<stage->numberOfCuboid; i++) {
+		if(collidionWithCuboid(&stage->cuboids[i], player)){
+			collision_flag ++;
+			break;
+		}
+	}
+	if (collision_flag) {
+		player->state = 0;
+		setVector(&player->velocity, zero);
+		setVector(&player->position, nowPosition.x);
+	}
+	
+//	printf("\nafter jump\n");
+//	printPlayer(player);
 }
+
+void movePlayerLookAngle(Player *player,ActionFlag *af){
+	double angle	= player->lookAngleXY;
+	
+	if (af->look_right) {
+		player->lookAngleXY -= 1;
+	}
+	if (af->look_left) {
+		player->lookAngleXY += 1;
+	}
+	
+	if (angle > 360 || angle < -360) {
+		angle = 0;
+	}
+}
+
 
 void drawPlayer(Player *player){
 	int i;
@@ -214,6 +264,17 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 	return flag1 && (flag2 || flag3 || flag4);
 }
 
+void printPlayer(Player *player){
+	printf("---Player---\n");
+	printf("state:%d\n",player->state);
+	printf("position:");
+	printVector(&player->position);
+	printf("velocity:");
+	printVector(&player->velocity);
+	printf("acceleration:");
+	printVector(&player->acceleration);
+	printf("------------\n");
+}
 
 
 
@@ -227,26 +288,26 @@ void initStage(Stage *stage){
 	Cuboid* cuboids = stage->cuboids;
 	stage->numberOfCuboid = 10;
 	for(i=0;i<10;i++) initCuboid(&cuboids[i]);
-	setPosition3d(&cuboids[0],-5,-5,-10);
-	setSize3d(&cuboids[0],10,10,10);
-	setPosition3d(&cuboids[1],0,3,0);
-	setSize3d(&cuboids[1],1,1,3);
-	setPosition3d(&cuboids[2],3,0,0);
-	setSize3d(&cuboids[2],1,1,3);
-	setPosition3d(&cuboids[3],3,3,0);
-	setSize3d(&cuboids[3],1,1,3);
-	setPosition3d(&cuboids[4],5,0,0);
-	setSize3d(&cuboids[4],1,1,3);
-	setPosition3d(&cuboids[5],5,3,0);
-	setSize3d(&cuboids[5],1,1,3);
-	setPosition3d(&cuboids[6],7,0,0);
-	setSize3d(&cuboids[6],1,1,3);
-	setPosition3d(&cuboids[7],7,3,0);
-	setSize3d(&cuboids[7],1,1,3);
-	setPosition3d(&cuboids[8],9,0,0);
-	setSize3d(&cuboids[8],1,1,3);
-	setPosition3d(&cuboids[9],9,3,0);
-	setSize3d(&cuboids[9],1,1,3);
+	setCuboidPosition(&cuboids[0],-5,-5,-10);
+	setCuboidSize(&cuboids[0],10,10,10);
+	setCuboidPosition(&cuboids[1],0,3,0);
+	setCuboidSize(&cuboids[1],1,1,3);
+	setCuboidPosition(&cuboids[2],3,0,0);
+	setCuboidSize(&cuboids[2],1,1,3);
+	setCuboidPosition(&cuboids[3],3,3,0);
+	setCuboidSize(&cuboids[3],1,1,3);
+	setCuboidPosition(&cuboids[4],5,0,0);
+	setCuboidSize(&cuboids[4],1,1,3);
+	setCuboidPosition(&cuboids[5],5,3,0);
+	setCuboidSize(&cuboids[5],1,1,3);
+	setCuboidPosition(&cuboids[6],7,0,0);
+	setCuboidSize(&cuboids[6],1,1,3);
+	setCuboidPosition(&cuboids[7],7,3,0);
+	setCuboidSize(&cuboids[7],1,1,3);
+	setCuboidPosition(&cuboids[8],9,0,0);
+	setCuboidSize(&cuboids[8],1,1,3);
+	setCuboidPosition(&cuboids[9],9,3,0);
+	setCuboidSize(&cuboids[9],1,1,3);
 }
 
 void drawStage(Stage *stage){
@@ -256,4 +317,40 @@ void drawStage(Stage *stage){
 		drawCuboid(&cuboids[i]);
 	}
 }
+
+////////////////////////
+/*     ActionFlag     */
+////////////////////////
+
+void initActionFlag(ActionFlag *af){
+	af->move_up = 0;
+	af->move_down = 0;
+	af->move_left = 0;
+	af->move_right = 0;
+	af->look_up = 0;
+	af->look_down = 0;
+	af->look_left = 0;
+	af->look_right = 0;
+	af->jump = 0;
+}
+
+void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
+	af->move_up		= myKeyboardValue & (1 << 1);
+	af->move_left	= myKeyboardValue & (1 << 2);
+	af->move_right	= myKeyboardValue & (1 << 3);
+	af->move_down	= myKeyboardValue & (1 << 4);
+	af->look_up		= mySpecialValue & (1 << 0);
+	af->look_left	= mySpecialValue & (1 << 1);
+	af->look_right	= mySpecialValue & (1 << 2);
+	af->look_down	= mySpecialValue & (1 << 3);
+	af->jump	= myKeyboardValue & (1 << 0);
+}
+
+
+
+
+
+
+
+
 
