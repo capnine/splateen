@@ -13,24 +13,24 @@ typedef struct {
 }Node;//点
 
 typedef struct{
-	int numberOfNodes;//頂点の個数:四角形ならこれは４
 	Vector normalVector;//法線
 	Vector zeroNode;//基準点
 	Vector basicVector[2];//基準点から隣の頂点へのベクトル
 	Node nodes[4];
-}Face;//面
+}Square;//面
 
 typedef struct{
 	int numberOfElement;
-}PaintFace;//塗れる面
+}PaintSquare;//塗れる面
 
 typedef struct{
-	Face face;
-	PaintFace paintFace;
+	Square face;
+	PaintSquare paintFace;
 }CuboidFace;//直方体の面(色がぬれる)
 
 typedef struct{
 	Vector position;//位置は一番座標が小さな値が基準
+	Vector maxPosition;
 	double size3d[3];
 	int color;
 	char isVisible;
@@ -39,13 +39,15 @@ typedef struct{
 	CuboidFace paintableFaces[6];
 }Cuboid;
 
+void initNode(Node *node, double x[3]);
+void initSquareWith4Nodes(Square *square,Node nodes[]);
 
 void initCuboid(Cuboid *cuboid);
 void setCuboidSize(Cuboid *cuboid,double x,double y,double z);
 void setCuboidPosition(Cuboid *cuboid,double x,double y,double z);
-void setCuboidParameter(Cuboid *cuboid);
+void setCuboidMaxPosition(Cuboid *cuboid);
+void setCuboidAllParameter(Cuboid *cuboid);
 void drawCuboid(Cuboid *cuboid);
 
-void initNode(Node *node, double x[3]);
 
 #endif

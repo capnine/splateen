@@ -7,10 +7,11 @@
 
 typedef struct{
 	double x[3];
+	double value;//長さ、ベクトル値
 }Vector;//ベクトル
 
 void setVector(Vector *vector,double x[3]);
-void setVectorWithXYZ(Vector *vector,double x,double y,double z);
+void copyVector(Vector *settedVector,Vector *sourceVector);
 double innerVector(Vector *a,Vector *b);//内積
 void crossProduct(Vector *settedVector,Vector *a,Vector *b);//外積
 void addVector(Vector *addedVector,Vector *a);//ベクトル和

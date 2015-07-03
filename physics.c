@@ -14,12 +14,11 @@ void setVector(Vector *vector,double x[3]){
 	for(i=0;i<3;i++){
 		vector->x[i] = x[i];
 	}
+	vector->value = getValueOfVector(vector);
 }
 
-void setVectorWithXYZ(Vector *vector,double x,double y,double z){
-	vector->x[0]=x;
-	vector->x[1]=y;
-	vector->x[2]=z;
+void copyVector(Vector *settedVector,Vector *sourceVector){
+	setVector(settedVector, sourceVector->x);
 }
 
 double innerVector(Vector *a,Vector *b){

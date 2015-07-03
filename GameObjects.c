@@ -224,12 +224,12 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 	double player_r = player->radius;
 	double player_maxZ = player->position.x[2] + player->height + 2*player_r;
 	double player_minZ = player->position.x[2];
-	double cube_maxX = cuboid->node[6][0] + cuboid->position.x[0];
-	double cube_minX = cuboid->node[0][0] + cuboid->position.x[0];
-	double cube_maxY = cuboid->node[6][1] + cuboid->position.x[1];
-	double cube_minY = cuboid->node[0][1] + cuboid->position.x[1];
-	double cube_maxZ = cuboid->node[6][2] + cuboid->position.x[2];
-	double cube_minZ = cuboid->node[0][2] + cuboid->position.x[2];
+	double cube_maxX = cuboid->maxPosition.x[0];
+	double cube_minX = cuboid->position.x[0];
+	double cube_maxY = cuboid->maxPosition.x[1];
+	double cube_minY = cuboid->position.x[1];
+	double cube_maxZ = cuboid->maxPosition.x[2];
+	double cube_minZ = cuboid->position.x[2];
 	
 	if (((cube_maxZ > player_minZ) && (cube_minZ < player_minZ))||
 		((cube_maxZ > player_maxZ) && (cube_minZ < player_maxZ))) {

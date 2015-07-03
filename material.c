@@ -18,6 +18,22 @@ GLfloat colors[][4] = {
 	{ 0.7, 0.7, 0.7, 1.0 },
 	{ 0.0, 0.0, 0.0, 1.0 } };
 
+void initSquareWith4Nodes(Square *square,Node nodes[]){
+	int i;
+	Vector buf;
+	for (i=0; i<4; i++) {
+		initNode(&square->nodes[i], nodes[i].position.x);
+	}
+	copyVector(&square->zeroNode, &nodes[0].position);
+	copyVector(&buf, &nodes[1].position);
+	minusVector(&buf, &nodes[0].position);
+	copyVector(&square->basicVector[0], &buf);
+	copyVector(&buf, &nodes[3].position);
+	minusVector(&buf, &nodes[0].position);
+	copyVector(&square->basicVector[1], &buf);
+	
+	crossProduct(&square->normalVector, &square->basicVector[0], &square->basicVector[1]);
+}
 
 
 ////////////////////////
@@ -57,10 +73,9 @@ void setNode(Cuboid *cuboid){
 
 void initCuboid(Cuboid *cuboid){
 	int i,j;
-	double* posi = cuboid->position.x;
-	posi[0]=0.0;
-	posi[1]=0.0;
-	posi[2]=0.0;
+	cuboid->position.x[0]=0.0;
+	cuboid->position.x[1]=0.0;
+	cuboid->position.x[2]=0.0;
 	cuboid->size3d[0]=1.0;
 	cuboid->size3d[1]=1.0;
 	cuboid->size3d[2]=1.0;
@@ -79,7 +94,7 @@ void setCuboidSize(Cuboid *cuboid,double x,double y,double z){
 	cuboid->size3d[0]=x;
 	cuboid->size3d[1]=y;
 	cuboid->size3d[2]=z;
-	setNode(cuboid);
+	setCuboidAllParameter(cuboid);
 }
 
 void setCuboidPosition(Cuboid *cuboid,double x,double y,double z){
@@ -87,15 +102,24 @@ void setCuboidPosition(Cuboid *cuboid,double x,double y,double z){
 	posi[0]=x;
 	posi[1]=y;
 	posi[2]=z;
-	setNode(cuboid);
+	setCuboidAllParameter(cuboid);
 }
 
-//void setCuboidParameter(Cuboid *cuboid){
-//	int i;
+void setCuboidMaxPosition(Cuboid *cuboid){
+	int i;
+	for (i=0; i<3; i++) {
+		cuboid->maxPosition.x[i] = cuboid->position.x[i] + cuboid->size3d[i];
+	}
+}
+
+void setCuboidAllParameter(Cuboid *cuboid){
+	int i;
+	setCuboidMaxPosition(cuboid);
+	setNode(cuboid);
 //	for (i=0; i<6; i++) {
 //		setVector(cuboid->paintableFaces[i].face.zeroNode,
 //	}
-//}
+}
 
 void drawCuboid(Cuboid *cuboid){
 	int i, j,k;
