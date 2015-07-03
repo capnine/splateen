@@ -24,7 +24,7 @@ typedef struct{
 }PaintSquare;//塗れる面
 
 typedef struct{
-	Square face;
+	Square squareFace;
 	PaintSquare paintFace;
 }CuboidFace;//直方体の面(色がぬれる)
 
@@ -41,6 +41,7 @@ typedef struct{
 
 void initNode(Node *node, double x[3]);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
+void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
 
 void initCuboid(Cuboid *cuboid);
 void setCuboidSize(Cuboid *cuboid,double x,double y,double z);

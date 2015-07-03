@@ -18,6 +18,10 @@ GLfloat colors[][4] = {
 	{ 0.7, 0.7, 0.7, 1.0 },
 	{ 0.0, 0.0, 0.0, 1.0 } };
 
+void initNode(Node *node, double x[3]){
+	setVector(&node->position, x);
+}
+
 void initSquareWith4Nodes(Square *square,Node nodes[]){
 	int i;
 	Vector buf;
@@ -34,6 +38,11 @@ void initSquareWith4Nodes(Square *square,Node nodes[]){
 	
 	crossProduct(&square->normalVector, &square->basicVector[0], &square->basicVector[1]);
 }
+
+void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]){
+	initSquareWith4Nodes(&cuboidFace->squareFace, nodes);
+}
+
 
 
 ////////////////////////
@@ -146,10 +155,6 @@ void drawCuboid(Cuboid *cuboid){
 	}
 
 	glPopMatrix();
-}
-
-void initNode(Node *node, double x[3]){
-	setVector(&node->position, x);
 }
 
 
