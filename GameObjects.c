@@ -76,6 +76,7 @@ void initPlayer(Player *player){
 	setVector(&player->acceleration, x3);
 	player->lookAngleXY = 90;
 	player->lookAngleZ = -10;
+	player->pauseCount = 0;
 }
 
 
@@ -139,10 +140,15 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	//自然物理による移動(落下)
 	collision_flag = 0;
 	setVector(&nowPosition, player->position.x);
-	if (af->jump && (player->state == 0)) {
+	if (af->jump && (player->state == 0) && (player->pauseCount == 0)) {
 		player->state = 1;
 		player->velocity.x[2] += 1.0;
+		player->pauseCount += 10;
 //		printf("%f",player->velocity.x[2]);
+	}else{
+		if ((player->state == 0) && (player->pauseCount > 0)) {
+			player->pauseCount --;
+		}
 	}
 	setPlayerVelocity(player);
 	addVector(&player->position, &player->velocity);
@@ -219,6 +225,7 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 	int flag2=0;
 	int flag3=0;
 	int flag4=0;
+	double buf[3];
 	double player_x = player->position.x[0];
 	double player_y = player->position.x[1];
 	double player_r = player->radius;
@@ -238,9 +245,15 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 	}
 	Vector vector1;
 	Vector vector2;
-	setVectorWithXYZ(&vector1, player_x, player_y, 0.0);
+	buf[0]=player_x;
+	buf[1]=player_y;
+	buf[2]=0.0;
+	setVector(&vector1, buf);
 	for (i=0; i<4; i++) {
-		setVectorWithXYZ(&vector2, cuboid->node[i][0]+cuboid->position.x[0], cuboid->node[i][1]+cuboid->position.x[1],0.0);
+		buf[0]=cuboid->node[i][0]+cuboid->position.x[0];
+		buf[1]=cuboid->node[i][1]+cuboid->position.x[1];
+		buf[2]=0.0;
+		setVector(&vector2, buf);
 //		printf("1:%f 2:%f 3:%f 4:%f\n",cuboid->node[i][0],cuboid->node[i][1],cuboid->position.x[0],cuboid->position.x[1]);
 		if (distanceBetweenVectors(&vector1, &vector2) < (player_r + MARGIN)) {
 			flag2 ++;
@@ -315,6 +328,7 @@ void drawStage(Stage *stage){
 	Cuboid* cuboids = stage->cuboids;
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		drawCuboid(&cuboids[i]);
+		drawCuboidPaintableFace(&cuboids[i]);
 	}
 }
 

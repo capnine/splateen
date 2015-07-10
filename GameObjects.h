@@ -13,6 +13,7 @@ typedef struct {
 
 typedef struct{
 	int state;//0:地面、1:空中
+	int pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
 	Vector position;
 	double height;
 	double radius;

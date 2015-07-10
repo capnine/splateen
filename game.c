@@ -9,7 +9,7 @@
 #include "GameObjects.h"
 
 GLfloat pos0[] = { 5.0, 5.0, 5.0, 1.0 };
-GLfloat pos1[] = { 5.0, 5.0, 5.0, 1.0 };
+GLfloat pos1[] = { 0.0, 0.0, 10.0, 1.0 };
 
 Camera mainCamera;
 Player player1;

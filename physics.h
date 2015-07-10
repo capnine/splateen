@@ -10,17 +10,16 @@ typedef struct{
 	double value;//長さ、ベクトル値
 }Vector;//ベクトル
 
-void setVector(Vector *vector,double x[3]);
-void copyVector(Vector *settedVector,Vector *sourceVector);
-double innerVector(Vector *a,Vector *b);//内積
-void crossProduct(Vector *settedVector,Vector *a,Vector *b);//外積
-void addVector(Vector *addedVector,Vector *a);//ベクトル和
-void minusVector(Vector *minusedVector,Vector *a);
-double getValueOfVector(Vector *a);//ベクトルの長さ
-double distanceBetweenVectors(Vector *a,Vector *b);
-void changeLengthOfVector(Vector *a, double rate);//rateは何倍にするか
-void getNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);
-void calcNormal(GLdouble v0[3], GLdouble v1[3], GLdouble v2[3], GLdouble n[3]);
-void rotateVectorInXY(Vector *rotatedVector,double angle);
-void printVector(Vector *a);
+void setVector(Vector *vector,double x[3]);//x配列でベクトルをセットする
+void copyVector(Vector *settedVector,Vector *sourceVector);//ベクトルをコピーする
+double innerVector(Vector *a,Vector *b);//2本のベクトルの内積を返す
+void crossProduct(Vector *settedVector,Vector *a,Vector *b);//第一引数のベクトルに外積をセットする
+void addVector(Vector *addedVector,Vector *a);//第一引数に第二引数のベクトルを足す
+void minusVector(Vector *minusedVector,Vector *a);//第一引数に第二引数のベクトルを引く
+double getValueOfVector(Vector *a);//ベクトルの長さを返す
+double distanceBetweenVectors(Vector *a,Vector *b);//ベクトルの距離を返す
+void changeLengthOfVector(Vector *a, double rate);//ベクトルの長さをrate倍にする
+void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);//2つのベクトルからもとめた法線ベクトルをセットする
+void rotateVectorInXY(Vector *rotatedVector,double angle);//ベクトルをz軸を軸に(xy平面上で)angle度回転させる。
+void printVector(Vector *a);//ベクトルをコンソールに表示
 #endif
