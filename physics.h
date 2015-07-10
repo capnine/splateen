@@ -17,6 +17,7 @@ typedef struct {
 }Matrix;
 
 void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double rows3[]);
+void initMatrix3dWith3Column(Matrix *matrix,double column1[],double column2[],double column3[]);
 void copyMatrix(Matrix *settedMatrix,Matrix *sourceMatrix);
 void changeRowsOfMatrix(Matrix *A,int a,int b);//行列のa列とb列を入れ替える
 void setVector(Vector *vector,double x[3]);//x配列でベクトルをセットする

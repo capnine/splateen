@@ -494,7 +494,7 @@ char collisionBulletWithSquare(Bullet *bullet,Square *square){
 	r = bullet->radius;
 	A = (Matrix *)malloc(sizeof(Matrix));
 	dist = (Vector *)malloc(sizeof(Vector));
-	initMatrix3dWith3Row(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
+	initMatrix3dWith3Column(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
 	for (i=0; i<3; i++) b[i] = bullet->position.x[i] - square->zeroNode.x[i];
 	solveSimultaneousEquation(A, x, b);
 	squre_x = x[0];
@@ -567,7 +567,7 @@ void initStage(Stage *stage){
 	};
 	double cuboid_position[][3] = {
 		{-5,-5,-10},
-		{1,1,1},
+		{1,1,0},
 		{5,-5,-5},
 		{3,0,0},
 		{5,0,0},
@@ -580,7 +580,7 @@ void initStage(Stage *stage){
 	stage->size[0] = STAGE_MAX_X;
 	stage->size[1] = STAGE_MAX_Y;
 	stage->size[2] = STAGE_MAX_Z;
-	stage->numberOfCuboid = 2;
+	stage->numberOfCuboid = 3;
 	for(i=0;i<stage->numberOfCuboid;i++)
 		initCuboidWithSize3dAndPosition3d(&cuboids[i], cuboid_size[i], cuboid_position[i]);
 //	printCuboid(&cuboids[1]);

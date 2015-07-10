@@ -19,6 +19,16 @@ void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double ro
 	}
 }
 
+void initMatrix3dWith3Column(Matrix *matrix,double column1[],double column2[],double column3[]){
+	int i;
+	matrix->n = 3;
+	for (i=0; i<3; i++) {
+		matrix->a[i][0] = column1[i];
+		matrix->a[i][1] = column2[i];
+		matrix->a[i][2] = column3[i];
+	}
+}
+
 void copyMatrix(Matrix *settedMatrix,Matrix *sourceMatrix){
 	int i,j,n;
 	n = sourceMatrix->n;

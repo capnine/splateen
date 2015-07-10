@@ -6,7 +6,7 @@
 //Paintsquareの塗るセルの細かさ
 #define PAINTCELL_SIZE 0.1
 //着弾した時の塗る大きさ
-#define PAINT_SIZE 0.2
+#define PAINT_SIZE 0.5
 
 enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
 extern GLfloat colors[][4];
@@ -53,7 +53,7 @@ void initNode(Node *node, double x[3]);
 void copyNode(Node *settedNode,Node *sourceNode);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
 void printSquare(Square *squre);
-void paintSquare(Square *square,double x[2]);
+void paintSquare(Square *square,double xy[]);
 void drawPaintSquare(Square *square);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
