@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #endif
 #include "GameObjects.h"
+#include "physics.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -205,10 +206,11 @@ void movePlayerLookAngle(Player *player,ActionFlag *af){
 }
 
 void shotBullet(Player *player,BulletList *bulletList){
-	Bullet* bullet;
-	bullet = (Bullet *)malloc(sizeof(Bullet));
+	int i;
+	Bullet *bullet;
+	bullet = (Bullet *)malloc(sizeof(Bullet)*4);
 	initBulletWithPlayer(bullet, player);
-	addBullet(bulletList, bullet);
+	for (i=0;i<4;i++) addBullet(bulletList, &bullet[i]);
 }
 
 void drawPlayer(Player *player){
@@ -327,34 +329,43 @@ void printPlayer(Player *player){
 /*       Bullet       */
 ////////////////////////
 
-void initBulletWithPlayer(Bullet *bullet,Player *player){
+void initBulletWithPlayer(Bullet bullet[],Player *player){
 	Vector *initPosition,*nextPosition;
 	Vector *bulletVelocity;
+	int i;
+	double x[3],e[3];
 	initPosition = (Vector *)malloc(sizeof(Vector));
 	nextPosition = (Vector *)malloc(sizeof(Vector));
 	bulletVelocity = (Vector *)malloc(sizeof(Vector));
-	double x[3],e[3];
-	x[0] = 0.0;
-	x[1] = -0.3;
-	x[2] = 0.5;
-	e[0] = 1.0;
-	e[1] = 0.0;
-	e[2] = 0.05;
-	setVector(initPosition, x);
-	rotateVectorInXY(initPosition, player->lookAngleXY);
-	addVector(initPosition, &player->position);
-	copyVector(&bullet->position, initPosition);
 	
-	setVector(bulletVelocity, e);
-	rotateVectorInXY(bulletVelocity, player->lookAngleXY);
-	changeLengthOfVector(bulletVelocity, BULLET_V);
-	copyVector(&bullet->velocity, bulletVelocity);
-	
-	copyVector(nextPosition, initPosition);
-	addVector(nextPosition, bulletVelocity);
-	copyVector(&bullet->nextPosition, nextPosition);
-	
-	bullet->radius = BULLET_RADIUS;
+	for (i=0; i<4; i++) {
+		x[0] = 0.0;
+		x[1] = -0.3;
+		x[2] = 0.5;
+		e[0] = 1.0 + 1.0*rand()/RAND_MAX;
+		e[1] = 0.0 + 0.2*rand()/RAND_MAX;
+		e[2] = 0.05 + 0.2*rand()/RAND_MAX;
+		setVector(initPosition, x);
+		rotateVectorInXY(initPosition, player->lookAngleXY);
+		addVector(initPosition, &player->position);
+		copyVector(&bullet[i].position, initPosition);
+		
+		setVector(bulletVelocity, e);
+		rotateVectorInXY(bulletVelocity, player->lookAngleXY);
+		changeLengthOfVector(bulletVelocity, BULLET_V);
+		copyVector(&bullet[i].velocity, bulletVelocity);
+		
+		copyVector(nextPosition, initPosition);
+		addVector(nextPosition, bulletVelocity);
+		copyVector(&bullet[i].nextPosition, nextPosition);
+		
+		if (i==0) {
+			bullet[i].radius = BULLET_RADIUS;
+		}else{
+			bullet[i].radius = BULLET_RADIUS*0.5;
+		}
+		
+	}
 	
 	free(initPosition);
 	free(nextPosition);
@@ -374,7 +385,7 @@ void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage){
 	}
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		if (collisionBulletWithCuboid(bullet, &stage->cuboids[i])) {
-			printf("coli#%d\n",i);
+//			printf("coli#%d\n",i);
 			collision_flag = 1;
 			break;
 		}
@@ -403,7 +414,20 @@ void moveBullets(BulletList *bulletList,Stage *stage){
 
 void drawBullet(Bullet *bullet){
 	double *posi;
-	double r,SLICE;
+	double r,SLICE,angle;
+	double axis_Z[3] = {0,0,1.0};
+	Vector *normal;
+	Vector *axis_z,*buf;
+	
+	normal = (Vector *) malloc(sizeof(Vector));
+	axis_z = (Vector *) malloc(sizeof(Vector));
+	buf = (Vector *) malloc(sizeof(Vector));
+	setVector(axis_z, axis_Z);
+	setNormalVector(normal, axis_z,&bullet->velocity);
+	copyVector(buf, &bullet->velocity);
+	changeLengthOfVector(buf, 1.0/getValueOfVector(buf));
+	
+	angle = acos(innerVector(buf, axis_z)) * 180/ PI;
 	
 	r = bullet->radius;
 	posi = bullet->position.x;
@@ -415,6 +439,8 @@ void drawBullet(Bullet *bullet){
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	
 	glTranslated(posi[0], posi[1], posi[2] + r);
+	glRotated(angle, normal->x[0], normal->x[1], normal->x[2]);
+	glScalef(0.7, 0.7, 3);
 	glutSolidSphere(r, SLICE, SLICE);
 	
 	glPopMatrix();
@@ -522,8 +548,8 @@ char collisionBulletWithSquare(Bullet *bullet,Square *square){
 //		printf("sq_x:%4f,sq_y:%4f\n",squre_x,squre_y);
 //		printf("sq_x:%4f,sq_y:%4f\n",square->size[1],squre_y-square->size[1]);
 //		printf("dx:%4f,dy:%4f\n",dx,dy);
-		printVector(dist);
-		paintSquare(square, x);
+//		printVector(dist);
+		paintSquare(square, x,bullet->radius*PAINT_SIZE);
 		collision_flag = 1;
 	}
 	free(dist);
@@ -537,7 +563,7 @@ char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
 	for (i=0; i<6; i++) {
 		if (collisionBulletWithSquare(bullet, &cuboid->paintableFaces[i].squareFace)) {
 			collision_flag = 1;
-			printf("coli with sq:%d\n",i);
+//			printf("coli with sq:%d\n",i);
 //			printSquare(&cuboid->paintableFaces[i].squareFace);
 			break;
 		}
@@ -554,7 +580,7 @@ void initStage(Stage *stage){
 	int i;
 	Cuboid* cuboids = stage->cuboids;
 	double cuboid_size[][3] = {
-		{10,10,10},
+		{10,50,10},
 		{1,1,1},
 		{1,10,10},
 		{1,1,1},

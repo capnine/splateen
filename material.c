@@ -205,7 +205,7 @@ void setCuboidAllParameter(Cuboid *cuboid){
 	setCuboidNormalvec(cuboid);
 }
 
-void paintSquare(Square *square,double xy[]){
+void paintSquare(Square *square,double xy[],double paintSize){
 	int i,j;
 	double p,q,r;
 	for (i=0; i<square->paintSquare.numberOfElement[0]; i++) {
@@ -213,7 +213,7 @@ void paintSquare(Square *square,double xy[]){
 			p = (double)(i+1.0/2.0) * PAINTCELL_SIZE - xy[0];
 			q = (double)(j+1.0/2.0) * PAINTCELL_SIZE - xy[1];
 			r = sqrt(p*p+q*q);
-			if (r<PAINT_SIZE) {
+			if (r<paintSize) {
 				square->paintSquare.state[i][j] = 1;
 			}
 		}

@@ -6,7 +6,7 @@
 //Paintsquareの塗るセルの細かさ
 #define PAINTCELL_SIZE 0.1
 //着弾した時の塗る大きさ
-#define PAINT_SIZE 0.5
+#define PAINT_SIZE 4
 
 enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
 extern GLfloat colors[][4];
@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct{
 	int numberOfElement[2];//SquareのbasicVectorを基準とした塗るセルの要素数
-	char state[128][128];//濡れる面は最大128*128セルよって大きさは12.8*12.8が限界(0:塗られていない、n:グループnによって塗られている)
+	char state[516][516];//濡れる面は最大516*516セルよって大きさは51.6*51.6が限界(0:塗られていない、n:グループnによって塗られている)
 }PaintSquare;//塗れる面
 
 typedef struct{
@@ -53,7 +53,7 @@ void initNode(Node *node, double x[3]);
 void copyNode(Node *settedNode,Node *sourceNode);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
 void printSquare(Square *squre);
-void paintSquare(Square *square,double xy[]);
+void paintSquare(Square *square,double xy[],double paintSize);
 void drawPaintSquare(Square *square);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);

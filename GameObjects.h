@@ -5,13 +5,14 @@
 #include "material.h"
 
 #define PLAYER_G (9.8*0.007)
-#define BULLET_G (0.01 )
+#define PLAYER_SHOT_INTERVAL 10
+#define BULLET_G (0.01)
 #define BULLET_V 0.5
-#define BULLET_RADIUS 0.2
+#define BULLET_RADIUS 0.3
 #define MAX_BULLET 256
-#define STAGE_MAX_X 20
-#define STAGE_MAX_Y 20
-#define STAGE_MAX_Z 20
+#define STAGE_MAX_X 100
+#define STAGE_MAX_Y 100
+#define STAGE_MAX_Z 100
 
 typedef struct {
 	double distance;
@@ -21,8 +22,9 @@ typedef struct {
 }Camera;
 
 typedef struct{
-	int state;//0:地面、1:空中
-	int pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
+	char state;//0:地面、1:空中
+	char pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
+	char shotPauseCount;//この値が0以外の時はshotできない
 	Vector position;
 	double height;
 	double radius;
@@ -84,7 +86,7 @@ void shotBullet(Player *player,BulletList *bulletList);
 void printPlayer(Player *player);
 int collidionWithCuboid(Cuboid *cuboid,Player *player);
 
-void initBulletWithPlayer(Bullet *bullet,Player *player);
+void initBulletWithPlayer(Bullet bullet[],Player *player);
 void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage);
 void moveBullets(BulletList *bulletList,Stage *stage);
 void drawBullet(Bullet *bullet);

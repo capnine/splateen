@@ -69,7 +69,7 @@ void copyVector(Vector *settedVector,Vector *sourceVector){
 
 double innerVector(Vector *a,Vector *b){
 	int i;
-	double sum=0;
+	double sum=0.0;
 	for (i=0; i<3; i++) {
 		sum += a->x[i] * b->x[i];
 	}

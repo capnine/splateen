@@ -46,8 +46,11 @@ void myTimerFunc(int value){
 	movePlayer(&player1, &mainStage,&af);
 	moveCamera(&mainCamera, &player1);
 	moveBullets(&bulletList,&mainStage);
-	if (af.jump) {
+	if (af.jump && player1.shotPauseCount == 0) {
 		shotBullet(&player1, &bulletList);
+		player1.shotPauseCount = PLAYER_SHOT_INTERVAL;
+	}else{
+		if(player1.shotPauseCount>0)player1.shotPauseCount --;
 	}
 	movePlayerLookAngle(&player1, &af);
 
