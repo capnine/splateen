@@ -36,7 +36,8 @@ void initNode(Node *node, double x[3]){
 void initSquareWith4Nodes(Square *square,Node nodes[]){
 	int i;
 	double length;
-	Vector buf;
+	Vector *buf;
+	buf = (Vector *)malloc(sizeof(Vector));
 	
 	//squareのnodesをセット
 	for (i=0; i<4; i++) {
@@ -47,25 +48,26 @@ void initSquareWith4Nodes(Square *square,Node nodes[]){
 	copyVector(&square->zeroNode, &nodes[0].position);
 	
 	//basicVector[0]とsize[0]をセット
-	copyVector(&buf, &nodes[1].position);
-	minusVector(&buf, &nodes[0].position);
-	length = getValueOfVector(&buf);
-	changeLengthOfVector(&buf, 1.0/length);
+	copyVector(buf, &nodes[1].position);
+	minusVector(buf, &nodes[0].position);
+	length = getValueOfVector(buf);
+	changeLengthOfVector(buf, 1.0/length);
 	square->size[0] = length;
-	copyVector(&square->basicVector[0], &buf);
+	copyVector(&square->basicVector[0], buf);
 	
 	//basicVector[1]とsize[1]をセット
-	copyVector(&buf, &nodes[3].position);
-	minusVector(&buf, &nodes[0].position);
-	length = getValueOfVector(&buf);
-	changeLengthOfVector(&buf, 1.0/length);
+	copyVector(buf, &nodes[3].position);
+	minusVector(buf, &nodes[0].position);
+	length = getValueOfVector(buf);
+	changeLengthOfVector(buf, 1.0/length);
 	square->size[1] = length;
-	copyVector(&square->basicVector[1], &buf);
+	copyVector(&square->basicVector[1], buf);
 	
 	//法線ベクトルをセット
 	setNormalVector(&square->normalVector, &square->basicVector[0], &square->basicVector[1]);
 	
 	initPaintSquare(&square->paintSquare, square->size);
+	free(buf);
 }
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]){
@@ -177,14 +179,15 @@ void setCuboidMaxPosition(Cuboid *cuboid){
 void setCuboidCuboidFace(Cuboid *cuboid){
 	//nodesセット実行後が前提
 	int i,j;
-	Node buf[4];
+	Node *buf;
+	buf = (Node *)malloc(sizeof(Node)*4);
 	for (i=0; i<6; i++) {
 		for (j=0; j<4; j++) {
 			buf[j] = cuboid->nodes[cuboid->face[i][j]];
 		}
 		initCuboidFace(&cuboid->paintableFaces[i], buf);
 	}
-	
+	free(buf);
 }
 
 void setCuboidNormalvec(Cuboid *cuboid){
@@ -206,11 +209,12 @@ void setCuboidAllParameter(Cuboid *cuboid){
 
 void drawPaintSquare(Square *square){
 	int i,j;
-	Vector offset;
-	Vector buf[4];
-	Vector basicVector[4];
-//	buf = (Vector *)malloc(sizeof(Vector)*4);
-//	basicVector = (Vector *)malloc(sizeof(Vector)*4);
+	Vector *offset;
+	Vector *buf;
+	Vector *basicVector;
+	offset = (Vector *)malloc(sizeof(Vector));
+	buf = (Vector *)malloc(sizeof(Vector)*4);
+	basicVector = (Vector *)malloc(sizeof(Vector)*4);
 	
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[ORANGE]);
@@ -218,9 +222,9 @@ void drawPaintSquare(Square *square){
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[ORANGE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
-	copyVector(&offset, &square->normalVector);
-	changeLengthOfVector(&offset, 0.001);
-	glTranslatef(offset.x[0], offset.x[1], offset.x[2]);
+	copyVector(offset, &square->normalVector);
+	changeLengthOfVector(offset, 0.001);
+	glTranslatef(offset->x[0], offset->x[1], offset->x[2]);
 	glBegin(GL_QUADS);
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
@@ -285,8 +289,9 @@ void drawPaintSquare(Square *square){
 	
 	glPopMatrix();
 	
-//	free(buf);
-//	free(basicVector);
+	free(offset);
+	free(buf);
+	free(basicVector);
 	
 }
 

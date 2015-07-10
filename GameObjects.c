@@ -4,7 +4,9 @@
 #include <GL/glut.h>
 #endif
 #include "GameObjects.h"
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 
 
@@ -20,7 +22,7 @@ void initCamera(Camera *camera,Player *player){
 	for (i=0; i<3; i++) {
 		x[i] = player->position.x[i];
 	}
-	x[1] -= 10;
+	x[1] -= 5;
 	x[2] += 2;
 	setVector(&camera->position, x);
 	
@@ -35,15 +37,20 @@ void initCamera(Camera *camera,Player *player){
 }
 
 void moveCamera(Camera *camera,Player *player){
-	double x[3] = {10,0,2};
-	Vector vectorToCameraFromPlayer;
+	double x[3] = {5,0,2};
+	Vector *vectorToCameraFromPlayer;
+	vectorToCameraFromPlayer = (Vector *)malloc(sizeof(Vector));
 	
-	setVector(&vectorToCameraFromPlayer, x);
-	rotateVectorInXY(&vectorToCameraFromPlayer, player->lookAngleXY+180);
+	setVector(vectorToCameraFromPlayer, x);
+	vectorToCameraFromPlayer->x[2] -= 5*sin(player->lookAngleZ / 60);
+	rotateVectorInXY(vectorToCameraFromPlayer, player->lookAngleXY+180);
 	
 	setVector(&camera->position, player->position.x);
-	addVector(&camera->position, &vectorToCameraFromPlayer);
+	addVector(&camera->position, vectorToCameraFromPlayer);
 	setVector(&camera->pointLookedAt, player->position.x);
+	camera->pointLookedAt.x[2] += 1.5;
+	
+	free(vectorToCameraFromPlayer);
 }
 
 void lookByCamera(Camera *camera){
@@ -89,12 +96,14 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	char collision_flag=0;
 	double zero[3] = {0,0,0};
 	double velocity;
-	Vector nowPosition;//衝突判定後からの復元用
-	Vector motionVector;//入力による移動ベクトル
+	Vector *nowPosition;//衝突判定後からの復元用
+	Vector *motionVector;//入力による移動ベクトル
+	nowPosition = (Vector *)malloc(sizeof(Vector));
+	motionVector = (Vector *)malloc(sizeof(Vector));
 	
 	//入力による移動
-	setVector(&nowPosition, player->position.x);//復元用バッファ
-	setVector(&motionVector, zero);
+	setVector(nowPosition, player->position.x);//復元用バッファ
+	setVector(motionVector, zero);
 	
 	switch (player->state) {
 		case 0:
@@ -107,20 +116,20 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	}
 	
 	if (af->move_up) {
-		motionVector.x[0] += velocity;
+		motionVector->x[0] += velocity;
 	}
 	if (af->move_down) {
-		motionVector.x[0] -= velocity;
+		motionVector->x[0] -= velocity;
 	}
 	if (af->move_right) {
-		motionVector.x[1] -= velocity;
+		motionVector->x[1] -= velocity;
 	}
 	if (af->move_left) {
-		motionVector.x[1] += velocity;
+		motionVector->x[1] += velocity;
 	}
 	
-	rotateVectorInXY(&motionVector, player->lookAngleXY);
-	addVector(&player->position, &motionVector);
+	rotateVectorInXY(motionVector, player->lookAngleXY);
+	addVector(&player->position, motionVector);
 	
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		if(collidionWithCuboid(&stage->cuboids[i], player)){
@@ -131,7 +140,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	}
 	
 	if (collision_flag) {
-		setVector(&player->position, nowPosition.x);
+		setVector(&player->position, nowPosition->x);
 	}
 	
 //	printf("\nbefore jump\n");
@@ -139,8 +148,8 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	//自然物理による移動(落下)
 	collision_flag = 0;
-	setVector(&nowPosition, player->position.x);
-	if (af->jump && (player->state == 0) && (player->pauseCount == 0)) {
+	setVector(nowPosition, player->position.x);
+	if (af->jump && (player->state == 0) && (player->pauseCount == 0) &&0) {
 		player->state = 1;
 		player->velocity.x[2] += 1.0;
 		player->pauseCount += 10;
@@ -161,28 +170,46 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	if (collision_flag) {
 		player->state = 0;
 		setVector(&player->velocity, zero);
-		setVector(&player->position, nowPosition.x);
+		setVector(&player->position, nowPosition->x);
 	}
+	
+	free(nowPosition);
+	free(motionVector);
 	
 //	printf("\nafter jump\n");
 //	printPlayer(player);
 }
 
 void movePlayerLookAngle(Player *player,ActionFlag *af){
-	double angle	= player->lookAngleXY;
 	
 	if (af->look_right) {
-		player->lookAngleXY -= 1;
+		player->lookAngleXY -= 3;
 	}
 	if (af->look_left) {
-		player->lookAngleXY += 1;
+		player->lookAngleXY += 3;
+	}
+	if (player->lookAngleXY > 360 || player->lookAngleXY < -360) {
+		player->lookAngleXY = 0;
 	}
 	
-	if (angle > 360 || angle < -360) {
-		angle = 0;
+	if (af->look_up) {
+		if (player->lookAngleZ < 100) {
+			player->lookAngleZ += 1;
+		}
+	}
+	if (af->look_down) {
+		if (player->lookAngleZ > -60) {
+			player->lookAngleZ -= 1;
+		}
 	}
 }
 
+void shotBullet(Player *player,BulletList *bulletList){
+	Bullet* bullet;
+	bullet = (Bullet *)malloc(sizeof(Bullet));
+	initBulletWithPlayer(bullet, player);
+	addBullet(bulletList, bullet);
+}
 
 void drawPlayer(Player *player){
 	int i;
@@ -237,25 +264,28 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 	double cube_minY = cuboid->position.x[1];
 	double cube_maxZ = cuboid->maxPosition.x[2];
 	double cube_minZ = cuboid->position.x[2];
+	Vector *vector1;
+	Vector *vector2;
+	
+	vector1 = (Vector *)malloc(sizeof(Vector));
+	vector2 = (Vector *)malloc(sizeof(Vector));
 	
 	if (((cube_maxZ > player_minZ) && (cube_minZ < player_minZ))||
 		((cube_maxZ > player_maxZ) && (cube_minZ < player_maxZ))) {
 		flag1 = 1;
 //		printf("1:%f 2:%f 3:%f 4:%f\n",cube_maxZ,cube_minZ,player_maxZ,player_minZ);
 	}
-	Vector vector1;
-	Vector vector2;
 	buf[0]=player_x;
 	buf[1]=player_y;
 	buf[2]=0.0;
-	setVector(&vector1, buf);
+	setVector(vector1, buf);
 	for (i=0; i<4; i++) {
 		buf[0]=cuboid->node[i][0]+cuboid->position.x[0];
 		buf[1]=cuboid->node[i][1]+cuboid->position.x[1];
 		buf[2]=0.0;
-		setVector(&vector2, buf);
+		setVector(vector2, buf);
 //		printf("1:%f 2:%f 3:%f 4:%f\n",cuboid->node[i][0],cuboid->node[i][1],cuboid->position.x[0],cuboid->position.x[1]);
-		if (distanceBetweenVectors(&vector1, &vector2) < (player_r + MARGIN)) {
+		if (distanceBetweenVectors(vector1, vector2) < (player_r + MARGIN)) {
 			flag2 ++;
 		}
 	}
@@ -273,6 +303,9 @@ int collidionWithCuboid(Cuboid *cuboid,Player *player){
 		flag4 ++;
 	}
 	
+	free(vector1);
+	free(vector2);
+	
 //	printf("1:%d 2:%d 3:%d 4:%d\n",flag1,flag2,flag3,flag4);
 	return flag1 && (flag2 || flag3 || flag4);
 }
@@ -289,6 +322,121 @@ void printPlayer(Player *player){
 	printf("------------\n");
 }
 
+
+////////////////////////
+/*       Bullet       */
+////////////////////////
+
+void initBulletWithPlayer(Bullet *bullet,Player *player){
+	Vector *initPosition,*nextPosition;
+	Vector *bulletVelocity;
+	initPosition = (Vector *)malloc(sizeof(Vector));
+	nextPosition = (Vector *)malloc(sizeof(Vector));
+	bulletVelocity = (Vector *)malloc(sizeof(Vector));
+	double x[3],e[3];
+	x[0] = 0.0;
+	x[1] = -0.3;
+	x[2] = 0.5;
+	e[0] = 1.0;
+	e[1] = 0.0;
+	e[2] = 0.05;
+	setVector(initPosition, x);
+	rotateVectorInXY(initPosition, player->lookAngleXY);
+	addVector(initPosition, &player->position);
+	copyVector(&bullet->position, initPosition);
+	
+	setVector(bulletVelocity, e);
+	rotateVectorInXY(bulletVelocity, player->lookAngleXY);
+	changeLengthOfVector(bulletVelocity, BULLET_V);
+	copyVector(&bullet->velocity, bulletVelocity);
+	
+	copyVector(nextPosition, initPosition);
+	addVector(nextPosition, bulletVelocity);
+	copyVector(&bullet->nextPosition, nextPosition);
+	
+	bullet->radius = BULLET_RADIUS;
+	
+	free(initPosition);
+	free(nextPosition);
+	free(bulletVelocity);
+}
+
+void moveBullet(Bullet *bullet){
+	copyVector(&bullet->position, &bullet->nextPosition);
+	bullet->velocity.x[2] -= BULLET_G;
+	addVector(&bullet->nextPosition, &bullet->velocity);
+}
+
+void moveBullets(BulletList *bulletList){
+	BulletListElement *bulletx;
+	bulletx = bulletList->firstBulletElement;
+	if (bulletx == NULL) {
+		return;
+	}
+	while (bulletx != NULL) {
+		moveBullet(bulletx->bullet);
+		bulletx = bulletx->next;
+	}
+}
+
+void drawBullet(Bullet *bullet){
+	double *posi;
+	double r,SLICE;
+	
+	r = bullet->radius;
+	posi = bullet->position.x;
+	SLICE = 20;
+	glPushMatrix();
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
+	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	
+	glTranslated(posi[0], posi[1], posi[2] + r);
+	glutSolidSphere(r, SLICE, SLICE);
+	
+	glPopMatrix();
+}
+
+void initBulletList(BulletList *bulletList){
+	bulletList->counter = 0;
+	bulletList = (BulletList *)malloc(sizeof(bulletList));
+	bulletList->firstBulletElement = NULL;
+	bulletList->lastBulletElement = NULL;
+}
+
+void addBullet(BulletList *bulletList,Bullet *bullet){
+	BulletListElement *newElement = &bulletList->bulletListElements[bulletList->counter];
+	bulletList->counter ++;
+	bulletList->counter %= MAX_BULLET;
+	if (bulletList->firstBulletElement == NULL) {
+		newElement->prev = NULL;
+		newElement->next = NULL;
+		newElement->bullet = bullet;
+		bulletList->firstBulletElement = newElement;
+		bulletList->lastBulletElement = newElement;
+	}else{
+		bulletList->lastBulletElement->next = newElement;
+		newElement->prev = bulletList->lastBulletElement;
+		newElement->bullet = bullet;
+		newElement->next = NULL;
+		bulletList->lastBulletElement = newElement;
+	}
+	return;
+}
+
+void drawBullets(BulletList *bulletList){
+	BulletListElement *bulletx;
+	bulletx = bulletList->firstBulletElement;
+	if (bulletx == NULL) {
+		return;
+	}
+	while (bulletx != NULL) {
+		drawBullet(bulletx->bullet);
+		bulletx = bulletx->next;
+	}
+//	free(bulletx);
+}
 
 
 ////////////////////////
@@ -330,6 +478,7 @@ void drawStage(Stage *stage){
 		drawCuboid(&cuboids[i]);
 		drawCuboidPaintableFace(&cuboids[i]);
 	}
+//	free(cuboids);
 }
 
 ////////////////////////

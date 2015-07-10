@@ -3,7 +3,7 @@
 
 #define PI 3.14159
 #define MARGIN 0.001
-#define PHYSICS_G (9.8*0.01)
+#define PHYSICS_G (9.8*0.007)
 
 typedef struct{
 	double x[3];

@@ -124,11 +124,13 @@ void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVecto
 }
 
 void rotateVectorInXY(Vector *rotatedVector,double angle){
-	Vector buf;
+	Vector *buf;
+	buf = (Vector *)malloc(sizeof(Vector));
 	double theta = 2*PI*angle/360.0;
-	setVector(&buf, rotatedVector->x);
-	rotatedVector->x[0]= cos(theta) * buf.x[0] - sin(theta) * buf.x[1];
-	rotatedVector->x[1]= sin(theta) * buf.x[0] + cos(theta) * buf.x[1];
+	setVector(buf, rotatedVector->x);
+	rotatedVector->x[0]= cos(theta) * buf->x[0] - sin(theta) * buf->x[1];
+	rotatedVector->x[1]= sin(theta) * buf->x[0] + cos(theta) * buf->x[1];
+	free(buf);
 }
 
 void printVector(Vector *a){
@@ -143,27 +145,30 @@ void solveSimultaneousEquation(Matrix *A,double x[],double b[]){
 	int i,j,k;
 	int n;
 	double p,q,c;
-	Matrix bufA;
+	Matrix *bufA;
 	double bufb[5];
 	
+	bufA = (Matrix *)malloc(sizeof(Matrix));
 	n=A->n;
 	if (n > 3) {
 		printf("行列の次元が３でないのでとけませ〜ん\n");
+		free(bufA);
 		return;
 	}
 	
-	copyMatrix(&bufA, A);
+	copyMatrix(bufA, A);
 	for (i=0; i<n; i++) bufb[i] = b[i];
 	
 	for (i=0; i<n; i++) {
-		if (bufA.a[i][i] == 0.0) {
+		if (bufA->a[i][i] == 0.0) {
 			if (i==n-1) {
 				printf("とけません(solveSimultaneousEquation)\n");
+				free(bufA);
 				return;
 			}
 			for (j=i+1; j<n; j++) {
-				if (bufA.a[j][i] != 0.0) {
-					changeRowsOfMatrix(&bufA, i, j);
+				if (bufA->a[j][i] != 0.0) {
+					changeRowsOfMatrix(bufA, i, j);
 					c = bufb[i];
 					bufb[i] = bufb[j];
 					bufb[j] = c;
@@ -171,9 +176,9 @@ void solveSimultaneousEquation(Matrix *A,double x[],double b[]){
 				}
 			}
 		}
-		p = bufA.a[i][i];
+		p = bufA->a[i][i];
 		for (j=i; j<n; j++){
-			bufA.a[i][j] /= p;
+			bufA->a[i][j] /= p;
 		}
 		bufb[i] /= p;
 		if (i==n-1) {
@@ -181,17 +186,17 @@ void solveSimultaneousEquation(Matrix *A,double x[],double b[]){
 		}
 		for (j=0; j<n; j++) {
 			if (j==i) continue;
-			q = bufA.a[j][i];
+			q = bufA->a[j][i];
 			for (k=i; k<n; k++) {
-				bufA.a[j][k] -= q*bufA.a[i][k];
+				bufA->a[j][k] -= q*bufA->a[i][k];
 			}
 			bufb[j] -= q*bufb[i];
 		}
 	}
 	for (i=n-1; i>=1; i--) {
 		for (j=0; j<i; j++) {
-			q = bufA.a[j][i];
-			bufA.a[j][i] -= q*bufA.a[i][i];
+			q = bufA->a[j][i];
+			bufA->a[j][i] -= q*bufA->a[i][i];
 			bufb[j] -= q*bufb[i];
 		}
 	}
@@ -199,6 +204,7 @@ void solveSimultaneousEquation(Matrix *A,double x[],double b[]){
 	for (i=0; i<n; i++) {
 		x[i] = bufb[i];
 	}
+	free(bufA);
 }
 
 

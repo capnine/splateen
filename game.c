@@ -1,4 +1,4 @@
-#ifdef __APPLE__
+  #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
@@ -14,6 +14,7 @@ GLfloat pos1[] = { 0.0, 0.0, 10.0, 1.0 };
 Camera mainCamera;
 Player player1;
 Stage mainStage;
+BulletList bulletList;
 ActionFlag af;
 
 void idle(void)
@@ -34,6 +35,7 @@ void display(void)
 
 	drawPlayer(&player1);
 	drawStage(&mainStage);
+	drawBullets(&bulletList);
 
 	glPopMatrix();
 	glutSwapBuffers();
@@ -43,6 +45,10 @@ void myTimerFunc(int value){
 	getActionFlag(&af, mySpecialValue, myKeyboardValue);
 	movePlayer(&player1, &mainStage,&af);
 	moveCamera(&mainCamera, &player1);
+	moveBullets(&bulletList);
+	if (af.jump) {
+		shotBullet(&player1, &bulletList);
+	}
 	movePlayerLookAngle(&player1, &af);
 
 	glLoadIdentity();
@@ -73,6 +79,7 @@ void init(void){
 	initActionFlag(&af);
 	initPlayer(&player1);
 	initCamera(&mainCamera, &player1);
+	initBulletList(&bulletList);
 	initStage(&mainStage);
 
 	glMatrixMode(GL_PROJECTION);

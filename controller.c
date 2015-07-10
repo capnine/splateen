@@ -58,16 +58,16 @@ void mySpcialFunc(int key, int x, int y){
 //	printf("%d\n",key);
 	switch (key){
 		case GLUT_KEY_UP:
-			mySpecialValue |= 1 << 0;//mySpecialValueÇÃ1bitñ⁄Ç1Ç…Ç∑ÇÈ
+			mySpecialValue |= 1 << 0;
 			break;
 		case GLUT_KEY_LEFT:
-			mySpecialValue |= 1 << 1;//mySpecialValueÇÃ2bitñ⁄Ç1Ç…Ç∑ÇÈ
+			mySpecialValue |= 1 << 1;
 			break;
 		case GLUT_KEY_RIGHT:
-			mySpecialValue |= 1 << 2;//mySpecialValueÇÃ3bitñ⁄Ç1Ç…Ç∑ÇÈ
+			mySpecialValue |= 1 << 2;
 			break;
 		case GLUT_KEY_DOWN:
-			mySpecialValue |= 1 << 3;//mySpecialValueÇÃ4bitñ⁄Ç1Ç…Ç∑ÇÈ
+			mySpecialValue |= 1 << 3;
 			break;
 		default:
 			break;
@@ -77,16 +77,16 @@ void mySpcialFunc(int key, int x, int y){
 void mySpcialUpFunc(int key, int x, int y){
 	switch (key){
 		case GLUT_KEY_UP:
-			mySpecialValue &= ~(1 << 0);//mySpecialValueÇÃ1bitñ⁄Ç0Ç…Ç∑ÇÈ
+			mySpecialValue &= ~(1 << 0);
 			break;
 		case GLUT_KEY_LEFT:
-			mySpecialValue &= ~(1 << 1);//mySpecialValueÇÃ2bitñ⁄Ç0Ç…Ç∑ÇÈ
+			mySpecialValue &= ~(1 << 1);
 			break;
 		case GLUT_KEY_RIGHT:
-			mySpecialValue &= ~(1 << 2);//mySpecialValueÇÃ3bitñ⁄Ç0Ç…Ç∑ÇÈ
+			mySpecialValue &= ~(1 << 2);
 			break;
 		case GLUT_KEY_DOWN:
-			mySpecialValue &= ~(1 << 3);//mySpecialValueÇÃ4bitñ⁄Ç0Ç…Ç∑ÇÈ
+			mySpecialValue &= ~(1 << 3);
 			break;
 		default:
 			break;
