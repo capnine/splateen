@@ -27,7 +27,9 @@ GLfloat colors[][4] = {
 void initNode(Node *node, double x[3]){
 	setVector(&node->position, x);
 }
-
+void copyNode(Node *settedNode,Node *sourceNode){
+	copyVector(&settedNode->position, &sourceNode->position);
+}
 ////////////////////////
 /*        Squre       */
 ////////////////////////
@@ -51,16 +53,16 @@ void initSquareWith4Nodes(Square *square,Node nodes[]){
 	copyVector(buf, &nodes[1].position);
 	minusVector(buf, &nodes[0].position);
 	length = getValueOfVector(buf);
-	changeLengthOfVector(buf, 1.0/length);
 	square->size[0] = length;
+	changeLengthOfVector(buf, 1.0/length);
 	copyVector(&square->basicVector[0], buf);
 	
 	//basicVector[1]とsize[1]をセット
 	copyVector(buf, &nodes[3].position);
 	minusVector(buf, &nodes[0].position);
 	length = getValueOfVector(buf);
-	changeLengthOfVector(buf, 1.0/length);
 	square->size[1] = length;
+	changeLengthOfVector(buf, 1.0/length);
 	copyVector(&square->basicVector[1], buf);
 	
 	//法線ベクトルをセット
@@ -69,6 +71,19 @@ void initSquareWith4Nodes(Square *square,Node nodes[]){
 	initPaintSquare(&square->paintSquare, square->size);
 	free(buf);
 }
+
+void printSquare(Square *squre){
+//	printf("pr sq\n");
+	printf("ZeroNode:\t");
+	printVector(&squre->zeroNode);
+	printf("basicVector[0]:\t");
+	printVector(&squre->basicVector[0]);
+	printf("basicVector[1]:\t");
+	printVector(&squre->basicVector[1]);
+	printf("size:%4f\t%4f\n",squre->size[0],squre->size[1]);
+	printf("\n");
+}
+
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]){
 	initSquareWith4Nodes(&cuboidFace->squareFace, nodes);
@@ -135,14 +150,10 @@ void setNode(Cuboid *cuboid){
 	}
 }
 
-void initCuboid(Cuboid *cuboid){
+void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]){
 	int i,j;
-	cuboid->position.x[0]=0.0;
-	cuboid->position.x[1]=0.0;
-	cuboid->position.x[2]=0.0;
-	cuboid->size3d[0]=1.0;
-	cuboid->size3d[1]=1.0;
-	cuboid->size3d[2]=1.0;
+	for (i=0; i<3; i++)	cuboid->position.x[i]=position[i];
+	for (i=0; i<3; i++)	cuboid->size3d[i]=size[i];
 	cuboid->color=0;
 	setNode(cuboid);
 	
@@ -151,23 +162,10 @@ void initCuboid(Cuboid *cuboid){
 			cuboid->face[i][j]=normalFace[i][j];
 		}
 	}
+	setCuboidAllParameter(cuboid);
 	
 }
 
-void setCuboidSize(Cuboid *cuboid,double x,double y,double z){
-	cuboid->size3d[0]=x;
-	cuboid->size3d[1]=y;
-	cuboid->size3d[2]=z;
-	setCuboidAllParameter(cuboid);
-}
-
-void setCuboidPosition(Cuboid *cuboid,double x,double y,double z){
-	double* posi = cuboid->position.x;
-	posi[0]=x;
-	posi[1]=y;
-	posi[2]=z;
-	setCuboidAllParameter(cuboid);
-}
 
 void setCuboidMaxPosition(Cuboid *cuboid){
 	int i;
@@ -183,7 +181,7 @@ void setCuboidCuboidFace(Cuboid *cuboid){
 	buf = (Node *)malloc(sizeof(Node)*4);
 	for (i=0; i<6; i++) {
 		for (j=0; j<4; j++) {
-			buf[j] = cuboid->nodes[cuboid->face[i][j]];
+			copyNode(&buf[j], &cuboid->nodes[cuboid->face[i][j]]);
 		}
 		initCuboidFace(&cuboid->paintableFaces[i], buf);
 	}
@@ -207,6 +205,21 @@ void setCuboidAllParameter(Cuboid *cuboid){
 	setCuboidNormalvec(cuboid);
 }
 
+void paintSquare(Square *square,double xy[]){
+	int i,j;
+	double p,q,r;
+	for (i=0; i<square->paintSquare.numberOfElement[0]; i++) {
+		for (j=0; j<square->paintSquare.numberOfElement[1]; j++) {
+			p = (double)(i+1.0/2.0) * PAINTCELL_SIZE - xy[0];
+			q = (double)(j+1.0/2.0) * PAINTCELL_SIZE - xy[1];
+			r = sqrt(p*p+q*q);
+			if (r<PAINT_SIZE) {
+				square->paintSquare.state[i][j] = 1;
+			}
+		}
+	}
+}
+
 void drawPaintSquare(Square *square){
 	int i,j;
 	Vector *offset;
@@ -228,8 +241,8 @@ void drawPaintSquare(Square *square){
 	glBegin(GL_QUADS);
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-//			if (!((square->paintSquare.state[i][j]) & 1))continue;
-			if ((i^j)&1) continue;
+			if (!((square->paintSquare.state[i][j]) & 1))continue;
+//			if ((i^j)&1) continue;
 			copyVector(&basicVector[0], &square->basicVector[0]);
 			copyVector(&basicVector[1], &square->basicVector[0]);
 			copyVector(&basicVector[2], &square->basicVector[1]);
@@ -254,38 +267,38 @@ void drawPaintSquare(Square *square){
 	}
 	glEnd();
 
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[WHITE]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
-	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
-	glBegin(GL_QUADS);
-	for (i = 1; i < square->paintSquare.numberOfElement[0]; i++){
-		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-			if (!((square->paintSquare.state[i][j]) & 1))continue;
-			copyVector(&basicVector[0], &square->basicVector[0]);
-			copyVector(&basicVector[1], &square->basicVector[0]);
-			copyVector(&basicVector[2], &square->basicVector[1]);
-			copyVector(&basicVector[3], &square->basicVector[1]);
-			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
-			copyVector(&buf[0], &basicVector[0]);
-			addVector(&buf[0], &basicVector[2]);
-			copyVector(&buf[1], &basicVector[1]);
-			addVector(&buf[1], &basicVector[2]);
-			copyVector(&buf[2], &basicVector[1]);
-			addVector(&buf[2], &basicVector[3]);
-			copyVector(&buf[3], &basicVector[0]);
-			addVector(&buf[3], &basicVector[3]);
-			glVertex3dv(buf[0].x);
-			glVertex3dv(buf[1].x);
-			glVertex3dv(buf[2].x);
-			glVertex3dv(buf[3].x);
-		}
-	}
-	glEnd();
+//	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[WHITE]);
+//	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
+//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
+//	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+//	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
+//	glBegin(GL_QUADS);
+//	for (i = 1; i < square->paintSquare.numberOfElement[0]; i++){
+//		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
+//			if (!((square->paintSquare.state[i][j]) & 1))continue;
+//			copyVector(&basicVector[0], &square->basicVector[0]);
+//			copyVector(&basicVector[1], &square->basicVector[0]);
+//			copyVector(&basicVector[2], &square->basicVector[1]);
+//			copyVector(&basicVector[3], &square->basicVector[1]);
+//			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+//			copyVector(&buf[0], &basicVector[0]);
+//			addVector(&buf[0], &basicVector[2]);
+//			copyVector(&buf[1], &basicVector[1]);
+//			addVector(&buf[1], &basicVector[2]);
+//			copyVector(&buf[2], &basicVector[1]);
+//			addVector(&buf[2], &basicVector[3]);
+//			copyVector(&buf[3], &basicVector[0]);
+//			addVector(&buf[3], &basicVector[3]);
+//			glVertex3dv(buf[0].x);
+//			glVertex3dv(buf[1].x);
+//			glVertex3dv(buf[2].x);
+//			glVertex3dv(buf[3].x);
+//		}
+//	}
+//	glEnd();
 	
 	glPopMatrix();
 	
@@ -300,8 +313,8 @@ void drawCuboid(Cuboid *cuboid){
 	
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[GRAY]);
-//	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 //	printf("1:\n");
 	for (i = 0; i < 6; i++){
@@ -321,6 +334,13 @@ void drawCuboidPaintableFace(Cuboid *cuboid){
 		if (cuboid->paintableFaces[i].isPaintable) {
 			drawPaintSquare(&cuboid->paintableFaces[i].squareFace);
 		}
+	}
+}
+void printCuboid(Cuboid *cuboid){
+	int i;
+	for (i=0; i<6; i++) {
+		printf("face:%d\n",i);
+		printSquare(&cuboid->paintableFaces[i].squareFace);
 	}
 }
 

@@ -13,6 +13,7 @@ typedef struct{
 typedef struct {
 	int n;//n次正方行列
 	double a[5][5];//要素(5次元まで)
+	double value;//行列式
 }Matrix;
 
 void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double rows3[]);
@@ -30,6 +31,9 @@ void changeLengthOfVector(Vector *a, double rate);//ベクトルの長さをrate
 void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);//2つのベクトルからもとめた法線ベクトルをセットする
 void rotateVectorInXY(Vector *rotatedVector,double angle);//ベクトルをz軸を軸に(xy平面上で)angle度回転させる。
 void printVector(Vector *a);//ベクトルをコンソールに表示
+
+double getMatrixValue3d(Matrix *A);
+void setReverseMatrix3d(Matrix *settedMatrix,Matrix *sourceMatrix);
 
 void solveSimultaneousEquation(Matrix *A,double x[],double b[]);//A*x=bの行列を解く、解はxに代入される。
 #endif

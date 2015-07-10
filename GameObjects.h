@@ -6,9 +6,12 @@
 
 #define PLAYER_G (9.8*0.007)
 #define BULLET_G (0.01 )
-#define BULLET_V 2
+#define BULLET_V 0.5
 #define BULLET_RADIUS 0.2
 #define MAX_BULLET 256
+#define STAGE_MAX_X 20
+#define STAGE_MAX_Y 20
+#define STAGE_MAX_Z 20
 
 typedef struct {
 	double distance;
@@ -34,6 +37,7 @@ typedef struct{
 	Vector nextPosition;
 	Vector velocity;
 	double radius;
+	int index;
 }Bullet;
 
 typedef struct tagElement{
@@ -50,8 +54,9 @@ typedef struct{
 }BulletList;
 
 typedef struct {
-	Cuboid cuboids[10];
+	Cuboid cuboids[20];
 	int numberOfCuboid;//直方体の数
+	double size[3];//ステージの大きさ、原点0を基準にこの座標より大きいオブジェクトは削除
 }Stage;
 
 typedef struct {
@@ -80,13 +85,16 @@ void printPlayer(Player *player);
 int collidionWithCuboid(Cuboid *cuboid,Player *player);
 
 void initBulletWithPlayer(Bullet *bullet,Player *player);
-void moveBullet(Bullet *bullet);
-void moveBullets(BulletList *bulletList);
+void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage);
+void moveBullets(BulletList *bulletList,Stage *stage);
 void drawBullet(Bullet *bullet);
 void drawBullets(BulletList *bulletList);
+char collisionBulletWithSquare(Bullet *bullet,Square *square);
+char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid);
 
 void initBulletList(BulletList *bulletList);
 void addBullet(BulletList *bulletList,Bullet *bullet);
+void removeBullet(BulletList *bulletList,int index);
 
 void initStage(Stage *stage);
 void drawStage(Stage *stage);

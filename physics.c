@@ -89,8 +89,8 @@ void minusVector(Vector *minusedVector,Vector *a){
 }
 
 double getValueOfVector(Vector* a){
-	int i,r;
-	double sum=0;
+	int i;
+	double r,sum=0;
 	for (i=0; i<3; i++) {
 		r = a->x[i];
 		sum += r * r;
@@ -138,73 +138,60 @@ void printVector(Vector *a){
 	for (i=0; i<3; i++) {
 		printf("%4.2f\t",a->x[i]);
 	}
+	printf("長さ:%4.2f\t",getValueOfVector(a));
 	printf("\n");
 }
 
+double getMatrixValue3d(Matrix *A){
+	int i;
+	double sum=0.0;
+	if (A->n != 3) {
+		printf("行列の次元を確認してねin getMatrixValue3d\n");
+		return -1;
+	}
+	for (i=0; i<3; i++) {
+		sum += A->a[(i+0)%3][0] * A->a[(i+1)%3][1] * A->a[(i+2)%3][2];
+		sum -= A->a[(i+0)%3][0] * A->a[(i+2)%3][1] * A->a[(i+1)%3][2];
+	}
+	return sum;
+}
+
+void setReverseMatrix3d(Matrix *settedMatrix,Matrix *sourceMatrix){
+	int i;
+	double delta;
+	Matrix *A;
+	A = sourceMatrix;
+	delta = getMatrixValue3d(sourceMatrix);
+	for (i=0; i<3; i++) {
+		settedMatrix->a[i][0] =(A->a[1][(i+1)%3] * A->a[2][(i+2)%3] - A->a[1][(i+2)%3] * A->a[2][(i+1)%3])/delta;
+		settedMatrix->a[i][1] =(A->a[0][(i+2)%3] * A->a[2][(i+1)%3] - A->a[0][(i+1)%3] * A->a[2][(i+2)%3])/delta;
+		settedMatrix->a[i][2] =(A->a[0][(i+1)%3] * A->a[1][(i+2)%3] - A->a[0][(i+2)%3] * A->a[1][(i+1)%3])/delta;
+	}
+	settedMatrix->value = delta;
+}
+
 void solveSimultaneousEquation(Matrix *A,double x[],double b[]){
-	int i,j,k;
+	int i,j;
 	int n;
-	double p,q,c;
-	Matrix *bufA;
-	double bufb[5];
+	Matrix *invA;
 	
-	bufA = (Matrix *)malloc(sizeof(Matrix));
+	invA = (Matrix *)malloc(sizeof(Matrix));
 	n=A->n;
-	if (n > 3) {
+	if (n != 3) {
 		printf("行列の次元が３でないのでとけませ〜ん\n");
-		free(bufA);
+		free(invA);
 		return;
 	}
 	
-	copyMatrix(bufA, A);
-	for (i=0; i<n; i++) bufb[i] = b[i];
-	
-	for (i=0; i<n; i++) {
-		if (bufA->a[i][i] == 0.0) {
-			if (i==n-1) {
-				printf("とけません(solveSimultaneousEquation)\n");
-				free(bufA);
-				return;
-			}
-			for (j=i+1; j<n; j++) {
-				if (bufA->a[j][i] != 0.0) {
-					changeRowsOfMatrix(bufA, i, j);
-					c = bufb[i];
-					bufb[i] = bufb[j];
-					bufb[j] = c;
-					break;
-				}
-			}
-		}
-		p = bufA->a[i][i];
-		for (j=i; j<n; j++){
-			bufA->a[i][j] /= p;
-		}
-		bufb[i] /= p;
-		if (i==n-1) {
-			break;
-		}
-		for (j=0; j<n; j++) {
-			if (j==i) continue;
-			q = bufA->a[j][i];
-			for (k=i; k<n; k++) {
-				bufA->a[j][k] -= q*bufA->a[i][k];
-			}
-			bufb[j] -= q*bufb[i];
-		}
-	}
-	for (i=n-1; i>=1; i--) {
-		for (j=0; j<i; j++) {
-			q = bufA->a[j][i];
-			bufA->a[j][i] -= q*bufA->a[i][i];
-			bufb[j] -= q*bufb[i];
+	setReverseMatrix3d(invA, A);
+	for (i=0; i<3; i++){
+		x[i] = 0.0;
+		for (j=0; j<3; j++) {
+			x[i] += invA->a[i][j] * b[j];
 		}
 	}
 	
-	for (i=0; i<n; i++) {
-		x[i] = bufb[i];
-	}
-	free(bufA);
+	free(invA);
 }
 
 

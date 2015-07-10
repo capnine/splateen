@@ -45,7 +45,7 @@ void myTimerFunc(int value){
 	getActionFlag(&af, mySpecialValue, myKeyboardValue);
 	movePlayer(&player1, &mainStage,&af);
 	moveCamera(&mainCamera, &player1);
-	moveBullets(&bulletList);
+	moveBullets(&bulletList,&mainStage);
 	if (af.jump) {
 		shotBullet(&player1, &bulletList);
 	}

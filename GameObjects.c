@@ -361,20 +361,42 @@ void initBulletWithPlayer(Bullet *bullet,Player *player){
 	free(bulletVelocity);
 }
 
-void moveBullet(Bullet *bullet){
-	copyVector(&bullet->position, &bullet->nextPosition);
-	bullet->velocity.x[2] -= BULLET_G;
-	addVector(&bullet->nextPosition, &bullet->velocity);
+void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage){
+	char collision_flag,i;
+	double posi[3];
+	collision_flag = 0;
+	for(i=0;i<3;i++) posi[i] = bullet->position.x[i];
+	for (i=0; i<3; i++) {
+		if (posi[i] > stage->size[i] || posi[i] < -stage->size[i]) {
+			removeBullet(bulletList, bullet->index);
+			return;
+		}
+	}
+	for (i=0; i<stage->numberOfCuboid; i++) {
+		if (collisionBulletWithCuboid(bullet, &stage->cuboids[i])) {
+			printf("coli#%d\n",i);
+			collision_flag = 1;
+			break;
+		}
+	}
+	if (collision_flag) {
+//		printf("%d\n",bullet->index);
+		removeBullet(bulletList, bullet->index);
+	}else{
+		copyVector(&bullet->position, &bullet->nextPosition);
+		bullet->velocity.x[2] -= BULLET_G;
+		addVector(&bullet->nextPosition, &bullet->velocity);
+	}
 }
 
-void moveBullets(BulletList *bulletList){
+void moveBullets(BulletList *bulletList,Stage *stage){
 	BulletListElement *bulletx;
 	bulletx = bulletList->firstBulletElement;
 	if (bulletx == NULL) {
 		return;
 	}
 	while (bulletx != NULL) {
-		moveBullet(bulletx->bullet);
+		moveBullet(bulletx->bullet,bulletList,stage);
 		bulletx = bulletx->next;
 	}
 }
@@ -407,8 +429,7 @@ void initBulletList(BulletList *bulletList){
 
 void addBullet(BulletList *bulletList,Bullet *bullet){
 	BulletListElement *newElement = &bulletList->bulletListElements[bulletList->counter];
-	bulletList->counter ++;
-	bulletList->counter %= MAX_BULLET;
+	bullet->index = bulletList->counter;
 	if (bulletList->firstBulletElement == NULL) {
 		newElement->prev = NULL;
 		newElement->next = NULL;
@@ -422,7 +443,31 @@ void addBullet(BulletList *bulletList,Bullet *bullet){
 		newElement->next = NULL;
 		bulletList->lastBulletElement = newElement;
 	}
+	bulletList->counter ++;
+	bulletList->counter %= MAX_BULLET;
 	return;
+}
+
+void removeBullet(BulletList *bulletList,int index){
+	BulletListElement *rmbullet;
+	rmbullet = &bulletList->bulletListElements[index];
+	if (rmbullet->prev == NULL) {
+		if (rmbullet->next == NULL) {
+			bulletList->firstBulletElement = NULL;
+			bulletList->lastBulletElement = NULL;
+			return;
+		}
+		rmbullet->next->prev = NULL;
+		bulletList->firstBulletElement = rmbullet->next;
+		return;
+	}
+	if (rmbullet->next == NULL) {
+		rmbullet->prev->next = NULL;
+		bulletList->lastBulletElement = rmbullet->prev;
+		return;
+	}
+	rmbullet->prev->next = rmbullet->next;
+	rmbullet->next->prev = rmbullet->prev;
 }
 
 void drawBullets(BulletList *bulletList){
@@ -438,6 +483,67 @@ void drawBullets(BulletList *bulletList){
 //	free(bulletx);
 }
 
+char collisionBulletWithSquare(Bullet *bullet,Square *square){
+	int i;
+	char collision_flag;
+	Matrix *A;
+	Vector *dist;
+	double x[3],b[3],d[3];
+	double squre_x,squre_y,distance,dx,dy,r;
+	collision_flag = 0;
+	r = bullet->radius;
+	A = (Matrix *)malloc(sizeof(Matrix));
+	dist = (Vector *)malloc(sizeof(Vector));
+	initMatrix3dWith3Row(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
+	for (i=0; i<3; i++) b[i] = bullet->position.x[i] - square->zeroNode.x[i];
+	solveSimultaneousEquation(A, x, b);
+	squre_x = x[0];
+	squre_y = x[1];
+	distance = -x[2];
+	if (squre_x > square->size[0]) {
+		dx = squre_x - square->size[0];
+	}else if (squre_x < 0) {
+		dx = squre_x;
+	}else{
+		dx = 0;
+	}
+	if (squre_y > square->size[1]) {
+		dy = squre_y - square->size[1];
+	}else if (squre_y < 0) {
+		dy = squre_y;
+	}else{
+		dy = 0;
+	}
+	d[0] = dx;
+	d[1] = dy;
+	d[2] = distance;
+	setVector(dist, d);
+	if (getValueOfVector(dist) < MARGIN + r) {
+//		printf("sq_x:%4f,sq_y:%4f\n",squre_x,squre_y);
+//		printf("sq_x:%4f,sq_y:%4f\n",square->size[1],squre_y-square->size[1]);
+//		printf("dx:%4f,dy:%4f\n",dx,dy);
+		printVector(dist);
+		paintSquare(square, x);
+		collision_flag = 1;
+	}
+	free(dist);
+	free(A);
+	return collision_flag;
+}
+
+char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
+	char collision_flag,i;
+	collision_flag = 0;
+	for (i=0; i<6; i++) {
+		if (collisionBulletWithSquare(bullet, &cuboid->paintableFaces[i].squareFace)) {
+			collision_flag = 1;
+			printf("coli with sq:%d\n",i);
+//			printSquare(&cuboid->paintableFaces[i].squareFace);
+			break;
+		}
+	}
+	return collision_flag;
+}
 
 ////////////////////////
 /*       Stage        */
@@ -447,28 +553,37 @@ void drawBullets(BulletList *bulletList){
 void initStage(Stage *stage){
 	int i;
 	Cuboid* cuboids = stage->cuboids;
-	stage->numberOfCuboid = 10;
-	for(i=0;i<10;i++) initCuboid(&cuboids[i]);
-	setCuboidPosition(&cuboids[0],-5,-5,-10);
-	setCuboidSize(&cuboids[0],10,10,10);
-	setCuboidPosition(&cuboids[1],0,3,0);
-	setCuboidSize(&cuboids[1],1,1,3);
-	setCuboidPosition(&cuboids[2],3,0,0);
-	setCuboidSize(&cuboids[2],1,1,3);
-	setCuboidPosition(&cuboids[3],3,3,0);
-	setCuboidSize(&cuboids[3],1,1,3);
-	setCuboidPosition(&cuboids[4],5,0,0);
-	setCuboidSize(&cuboids[4],1,1,3);
-	setCuboidPosition(&cuboids[5],5,3,0);
-	setCuboidSize(&cuboids[5],1,1,3);
-	setCuboidPosition(&cuboids[6],7,0,0);
-	setCuboidSize(&cuboids[6],1,1,3);
-	setCuboidPosition(&cuboids[7],7,3,0);
-	setCuboidSize(&cuboids[7],1,1,3);
-	setCuboidPosition(&cuboids[8],9,0,0);
-	setCuboidSize(&cuboids[8],1,1,3);
-	setCuboidPosition(&cuboids[9],9,3,0);
-	setCuboidSize(&cuboids[9],1,1,3);
+	double cuboid_size[][3] = {
+		{10,10,10},
+		{1,1,1},
+		{1,10,10},
+		{1,1,1},
+		{1,1,1},
+		{1,1,1},
+		{1,1,1},
+		{1,1,1},
+		{1,1,1},
+		{1,1,1}
+	};
+	double cuboid_position[][3] = {
+		{-5,-5,-10},
+		{1,1,1},
+		{5,-5,-5},
+		{3,0,0},
+		{5,0,0},
+		{7,0,0},
+		{9,0,0},
+		{10,0,0},
+		{1,0,0},
+		{1,0,0}
+	};
+	stage->size[0] = STAGE_MAX_X;
+	stage->size[1] = STAGE_MAX_Y;
+	stage->size[2] = STAGE_MAX_Z;
+	stage->numberOfCuboid = 2;
+	for(i=0;i<stage->numberOfCuboid;i++)
+		initCuboidWithSize3dAndPosition3d(&cuboids[i], cuboid_size[i], cuboid_position[i]);
+//	printCuboid(&cuboids[1]);
 }
 
 void drawStage(Stage *stage){

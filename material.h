@@ -5,6 +5,8 @@
 
 //Paintsquareの塗るセルの細かさ
 #define PAINTCELL_SIZE 0.1
+//着弾した時の塗る大きさ
+#define PAINT_SIZE 0.2
 
 enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
 extern GLfloat colors[][4];
@@ -48,20 +50,23 @@ typedef struct{
 }Cuboid;
 
 void initNode(Node *node, double x[3]);
+void copyNode(Node *settedNode,Node *sourceNode);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
+void printSquare(Square *squre);
+void paintSquare(Square *square,double x[2]);
+void drawPaintSquare(Square *square);
+
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
 void initPaintSquare(PaintSquare *paintSquare,double size[]);
 
-void initCuboid(Cuboid *cuboid);
-void setCuboidSize(Cuboid *cuboid,double x,double y,double z);
-void setCuboidPosition(Cuboid *cuboid,double x,double y,double z);
+void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]);
 void setCuboidMaxPosition(Cuboid *cuboid);
 void setCuboidCuboidFace(Cuboid *cuboid);
 void setCuboidNormalvec(Cuboid *cuboid);
 void setCuboidAllParameter(Cuboid *cuboid);
-void drawPaintSquare(Square *square);
 void drawCuboid(Cuboid *cuboid);
 void drawCuboidPaintableFace(Cuboid *cuboid);
+void printCuboid(Cuboid *cuboid);
 
 
 #endif
