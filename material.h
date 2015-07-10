@@ -6,7 +6,7 @@
 //Paintsquareの塗るセルの細かさ
 #define PAINTCELL_SIZE 0.1
 
-enum COLOR { WHITE, RED, GREEN, BLUE, YELLOW, MAGENTA, CYAN, GRAY, BLACK };
+enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
 extern GLfloat colors[][4];
 
 typedef struct {

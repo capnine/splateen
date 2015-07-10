@@ -14,7 +14,7 @@ GLfloat colors[][4] = {
 	{ 1.0, 0.0, 0.0, 1.0 },
 	{ 0.0, 1.0, 0.0, 1.0 },
 	{ 0.0, 0.0, 1.0, 1.0 },
-	{ 1.0, 1.0, 0.0, 1.0 },
+	{ 1.0, 0.553, 0.156, 1.0   },
 	{ 1.0, 0.0, 1.0, 1.0 },
 	{ 0.0, 1.0, 1.0, 1.0 },
 	{ 0.7, 0.7, 0.7, 1.0 },
@@ -205,8 +205,7 @@ void setCuboidAllParameter(Cuboid *cuboid){
 }
 
 void drawPaintSquare(Square *square){
-	int i,j,k,l;
-	GLdouble v[4][3];
+	int i,j;
 	Vector offset;
 	Vector buf[4];
 	Vector basicVector[4];
@@ -214,9 +213,9 @@ void drawPaintSquare(Square *square){
 //	basicVector = (Vector *)malloc(sizeof(Vector)*4);
 	
 	glPushMatrix();
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[BLACK]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[ORANGE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(&offset, &square->normalVector);
@@ -247,51 +246,42 @@ void drawPaintSquare(Square *square){
 			glVertex3dv(buf[1].x);
 			glVertex3dv(buf[2].x);
 			glVertex3dv(buf[3].x);
-//			for (k=0; k<4; k++) {
-//				for (l=0; l<3; l++) {
-//					v[k][l] = basicVector[k].x[l];
-//				}
-//			}
-//			glVertex3dv(v[0]);
-//			glVertex3dv(v[1]);
-//			glVertex3dv(v[2]);
-//			glVertex3dv(v[3]);
 		}
 	}
 	glEnd();
-//	
-//	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[WHITE]);
-//	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-//	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
-//	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
-//	glBegin(GL_QUADS);
-//	for (i = 1; i < square->paintSquare.numberOfElement[0]; i++){
-//		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-//			if (!((square->paintSquare.state[i][j]) & 2))continue;
-//			copyVector(&basicVector[0], &square->basicVector[0]);
-//			copyVector(&basicVector[1], &square->basicVector[0]);
-//			copyVector(&basicVector[2], &square->basicVector[1]);
-//			copyVector(&basicVector[3], &square->basicVector[1]);
-//			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
-//			copyVector(&buf[0], &basicVector[0]);
-//			addVector(&buf[0], &basicVector[2]);
-//			copyVector(&buf[1], &basicVector[1]);
-//			addVector(&buf[1], &basicVector[2]);
-//			copyVector(&buf[2], &basicVector[1]);
-//			addVector(&buf[2], &basicVector[3]);
-//			copyVector(&buf[3], &basicVector[0]);
-//			addVector(&buf[3], &basicVector[3]);
-//			glVertex3dv(buf[0].x);
-//			glVertex3dv(buf[1].x);
-//			glVertex3dv(buf[2].x);
-//			glVertex3dv(buf[3].x);
-//		}
-//	}
-//	glEnd();
+
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[WHITE]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
+	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
+	glBegin(GL_QUADS);
+	for (i = 1; i < square->paintSquare.numberOfElement[0]; i++){
+		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
+			if (!((square->paintSquare.state[i][j]) & 1))continue;
+			copyVector(&basicVector[0], &square->basicVector[0]);
+			copyVector(&basicVector[1], &square->basicVector[0]);
+			copyVector(&basicVector[2], &square->basicVector[1]);
+			copyVector(&basicVector[3], &square->basicVector[1]);
+			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+			copyVector(&buf[0], &basicVector[0]);
+			addVector(&buf[0], &basicVector[2]);
+			copyVector(&buf[1], &basicVector[1]);
+			addVector(&buf[1], &basicVector[2]);
+			copyVector(&buf[2], &basicVector[1]);
+			addVector(&buf[2], &basicVector[3]);
+			copyVector(&buf[3], &basicVector[0]);
+			addVector(&buf[3], &basicVector[3]);
+			glVertex3dv(buf[0].x);
+			glVertex3dv(buf[1].x);
+			glVertex3dv(buf[2].x);
+			glVertex3dv(buf[3].x);
+		}
+	}
+	glEnd();
 	
 	glPopMatrix();
 	

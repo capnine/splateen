@@ -10,6 +10,14 @@ typedef struct{
 	double value;//長さ、ベクトル値
 }Vector;//ベクトル
 
+typedef struct {
+	int n;//n次正方行列
+	double a[5][5];//要素(5次元まで)
+}Matrix;
+
+void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double rows3[]);
+void copyMatrix(Matrix *settedMatrix,Matrix *sourceMatrix);
+void changeRowsOfMatrix(Matrix *A,int a,int b);//行列のa列とb列を入れ替える
 void setVector(Vector *vector,double x[3]);//x配列でベクトルをセットする
 void copyVector(Vector *settedVector,Vector *sourceVector);//ベクトルをコピーする
 double innerVector(Vector *a,Vector *b);//2本のベクトルの内積を返す
@@ -22,4 +30,6 @@ void changeLengthOfVector(Vector *a, double rate);//ベクトルの長さをrate
 void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);//2つのベクトルからもとめた法線ベクトルをセットする
 void rotateVectorInXY(Vector *rotatedVector,double angle);//ベクトルをz軸を軸に(xy平面上で)angle度回転させる。
 void printVector(Vector *a);//ベクトルをコンソールに表示
+
+void solveSimultaneousEquation(Matrix *A,double x[],double b[]);//A*x=bの行列を解く、解はxに代入される。
 #endif
