@@ -344,7 +344,7 @@ void initBulletWithPlayer(Bullet bullet[],Player *player){
 		x[2] = 0.5;
 		e[0] = 1.0 + 1.0*rand()/RAND_MAX;
 		e[1] = 0.0 + 0.2*rand()/RAND_MAX;
-		e[2] = 0.05 + 0.2*rand()/RAND_MAX;
+		e[2] = 0.0 + 0.2*rand()/RAND_MAX;
 		setVector(initPosition, x);
 		rotateVectorInXY(initPosition, player->lookAngleXY);
 		addVector(initPosition, &player->position);
@@ -359,7 +359,7 @@ void initBulletWithPlayer(Bullet bullet[],Player *player){
 		addVector(nextPosition, bulletVelocity);
 		copyVector(&bullet[i].nextPosition, nextPosition);
 		
-		if (i==0) {
+		if (i<2) {
 			bullet[i].radius = BULLET_RADIUS;
 		}else{
 			bullet[i].radius = BULLET_RADIUS*0.5;
@@ -440,8 +440,17 @@ void drawBullet(Bullet *bullet){
 	
 	glTranslated(posi[0], posi[1], posi[2] + r);
 	glRotated(angle, normal->x[0], normal->x[1], normal->x[2]);
+	glPushMatrix();
 	glScalef(0.7, 0.7, 3);
 	glutSolidSphere(r, SLICE, SLICE);
+	glPopMatrix();
+	glPushMatrix();
+	glTranslated(rand()/RAND_MAX * 1, rand()/RAND_MAX * 1, -rand()/RAND_MAX * 1);
+	glScalef(rand()/RAND_MAX *1, rand()/RAND_MAX *1, rand()/RAND_MAX * 5);
+	glutSolidSphere(r, SLICE, SLICE);
+	glPopMatrix();
+//	glPushMatrix();
+//	glPopMatrix();
 	
 	glPopMatrix();
 }
