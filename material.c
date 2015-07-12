@@ -1,11 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "physics.h"
 #include "material.h"
 
@@ -100,7 +100,7 @@ void initPaintSquare(PaintSquare *paintSquare,double size[]){
 			paintSquare->state[i][j] = 0;
 		}
 	}
-	if ((paintSquare->numberOfElement[0] > 128)||(paintSquare->numberOfElement[1] > 128)) {
+	if ((paintSquare->numberOfElement[0] > PAINT_MAX_CELLS)||(paintSquare->numberOfElement[1] > PAINT_MAX_CELLS)) {
 		printf("PaintSquareの大きさ制限を超えています。\n");
 		return;
 	}

@@ -1,4 +1,5 @@
-  #ifdef __APPLE__
+#include <stdlib.h>
+#ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
@@ -11,11 +12,11 @@
 GLfloat pos0[] = { 5.0, 5.0, 5.0, 1.0 };
 GLfloat pos1[] = { 0.0, 0.0, 10.0, 1.0 };
 
-Camera mainCamera;
-Player player1;
-Stage mainStage;
-BulletList bulletList;
-ActionFlag af;
+Camera *mainCamera;
+Player *player1;
+Stage *mainStage;
+BulletList *bulletList;
+ActionFlag *af;
 
 void idle(void)
 {
@@ -33,30 +34,30 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
 
-	drawPlayer(&player1);
-	drawStage(&mainStage);
-	drawBullets(&bulletList);
+	drawPlayer(player1);
+	drawStage(mainStage);
+	drawBullets(bulletList);
 
 	glPopMatrix();
 	glutSwapBuffers();
 }
 void myTimerFunc(int value){
 	
-	getActionFlag(&af, mySpecialValue, myKeyboardValue);
-	movePlayer(&player1, &mainStage,&af);
-	moveCamera(&mainCamera, &player1);
-	moveBullets(&bulletList,&mainStage);
-	if (af.jump && player1.shotPauseCount == 0) {
-		shotBullet(&player1, &bulletList);
-		player1.shotPauseCount = PLAYER_SHOT_INTERVAL;
+	getActionFlag(af, mySpecialValue, myKeyboardValue);
+	movePlayer(player1, mainStage,af);
+	moveCamera(mainCamera, player1);
+	moveBullets(bulletList,mainStage);
+	if (af->jump  && (player1->shotPauseCount == 0)) {
+		shotBullet(player1, bulletList);
+		player1->shotPauseCount = PLAYER_SHOT_INTERVAL;
 	}else{
-		if(player1.shotPauseCount>0)player1.shotPauseCount --;
+		if(player1->shotPauseCount>0)player1->shotPauseCount --;
 	}
-	movePlayerLookAngle(&player1, &af);
+	movePlayerLookAngle(player1, af);
 
 	glLoadIdentity();
 	
-	lookByCamera(&mainCamera);
+	lookByCamera(mainCamera);
 
 	glutTimerFunc(10, myTimerFunc, 0);
 }
@@ -78,12 +79,18 @@ void init(void){
 	glEnable(GL_LIGHT0);
 	glEnable(GL_LIGHT1);
 	
+	mainCamera = (Camera *)malloc(sizeof(Camera));
+	player1 = (Player *)malloc(sizeof(Player));
+	mainStage = (Stage *)malloc(sizeof(Stage));
+	bulletList = (BulletList *)malloc(sizeof(BulletList));
+	af = (ActionFlag *)malloc(sizeof(ActionFlag));
+	
 	initController();
-	initActionFlag(&af);
-	initPlayer(&player1);
-	initCamera(&mainCamera, &player1);
-	initBulletList(&bulletList);
-	initStage(&mainStage);
+	initActionFlag(af);
+	initPlayer(player1);
+	initCamera(mainCamera, player1);
+	initBulletList(bulletList);
+	initStage(mainStage);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();

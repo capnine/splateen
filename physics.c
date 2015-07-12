@@ -1,12 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
-
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "physics.h"
 
 void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double rows3[]){

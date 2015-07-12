@@ -6,13 +6,15 @@
 
 #define PLAYER_G (9.8*0.007)
 #define PLAYER_SHOT_INTERVAL 10
+#define PLAYER_V 0.2
 #define BULLET_G (0.01)
-#define BULLET_V 0.5
+#define BULLET_V 0.7
 #define BULLET_RADIUS 0.3
 #define MAX_BULLET 256
-#define STAGE_MAX_X 100
-#define STAGE_MAX_Y 100
-#define STAGE_MAX_Z 100
+#define STAGE_MAX_X 128
+#define STAGE_MAX_Y 128
+#define STAGE_MAX_Z 20
+#define MAX_CUBOIDS 20
 
 typedef struct {
 	double distance;
@@ -26,6 +28,8 @@ typedef struct{
 	char pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
 	char shotPauseCount;//この値が0以外の時はshotできない
 	Vector position;
+	Vector lowSpherePosition;
+	Vector highSpherePosition;
 	double height;
 	double radius;
 	Vector velocity;
@@ -56,7 +60,7 @@ typedef struct{
 }BulletList;
 
 typedef struct {
-	Cuboid cuboids[20];
+	Cuboid cuboids[MAX_CUBOIDS];
 	int numberOfCuboid;//直方体の数
 	double size[3];//ステージの大きさ、原点0を基準にこの座標より大きいオブジェクトは削除
 }Stage;
@@ -79,12 +83,14 @@ void lookByCamera(Camera *camera);
 
 void initPlayer(Player *player);
 void setPlayerVelocity(Player *player);
+void setPlayerSpherePosition(Player *player);
 void movePlayer(Player *player,Stage *stage,ActionFlag *af);
 void drawPlayer(Player *player);
 void movePlayerLookAngle(Player *player,ActionFlag *af);
 void shotBullet(Player *player,BulletList *bulletList);
 void printPlayer(Player *player);
-int collidionWithCuboid(Cuboid *cuboid,Player *player);
+char collisionPlayerWithSquare(Player *player,Square *square);
+char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
 
 void initBulletWithPlayer(Bullet bullet[],Player *player);
 void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage);

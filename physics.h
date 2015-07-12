@@ -20,7 +20,7 @@ void initMatrix3dWith3Row(Matrix *matrix,double rows1[],double rows2[],double ro
 void initMatrix3dWith3Column(Matrix *matrix,double column1[],double column2[],double column3[]);
 void copyMatrix(Matrix *settedMatrix,Matrix *sourceMatrix);
 void changeRowsOfMatrix(Matrix *A,int a,int b);//行列のa列とb列を入れ替える
-void setVector(Vector *vector,double x[3]);//x配列でベクトルをセットする
+void setVector(Vector *vector,double x[]);//x配列でベクトルをセットする
 void copyVector(Vector *settedVector,Vector *sourceVector);//ベクトルをコピーする
 double innerVector(Vector *a,Vector *b);//2本のベクトルの内積を返す
 void crossProduct(Vector *settedVector,Vector *a,Vector *b);//第一引数のベクトルに外積をセットする

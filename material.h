@@ -4,9 +4,10 @@
 #include "physics.h"
 
 //Paintsquareの塗るセルの細かさ
-#define PAINTCELL_SIZE 0.1
+#define PAINTCELL_SIZE 0.2
 //着弾した時の塗る大きさ
 #define PAINT_SIZE 4
+#define PAINT_MAX_CELLS 516
 
 enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
 extern GLfloat colors[][4];
@@ -17,7 +18,7 @@ typedef struct {
 
 typedef struct{
 	int numberOfElement[2];//SquareのbasicVectorを基準とした塗るセルの要素数
-	char state[516][516];//濡れる面は最大516*516セルよって大きさは51.6*51.6が限界(0:塗られていない、n:グループnによって塗られている)
+	char state[PAINT_MAX_CELLS][PAINT_MAX_CELLS];//濡れる面は最大516*516セルよって大きさは51.6*51.6が限界(0:塗られていない、n:グループnによって塗られている)
 }PaintSquare;//塗れる面
 
 typedef struct{

@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -6,8 +8,6 @@
 #include "GameObjects.h"
 #include "physics.h"
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 
 
@@ -80,6 +80,10 @@ void initPlayer(Player *player){
 	player->radius = 0.3;
 	player->state = 0;
 	setVector(&player->position, x1);
+	setVector(&player->lowSpherePosition, x1);
+	player->lowSpherePosition.x[2] += player->radius;
+	copyVector(&player->highSpherePosition, &player->lowSpherePosition);
+	player->lowSpherePosition.x[2] += player->height;
 	setVector(&player->velocity, x2);
 	setVector(&player->acceleration, x3);
 	player->lookAngleXY = 90;
@@ -90,6 +94,12 @@ void initPlayer(Player *player){
 
 void setPlayerVelocity(Player *player){
 	addVector(&player->velocity, &player->acceleration);
+}
+void setPlayerSpherePosition(Player *player){
+	copyVector(&player->lowSpherePosition, &player->position);
+	player->lowSpherePosition.x[2] += player->radius;
+	copyVector(&player->highSpherePosition, &player->lowSpherePosition);
+	player->highSpherePosition.x[2] += player->height;
 }
 
 void movePlayer(Player *player,Stage *stage,ActionFlag *af){
@@ -109,7 +119,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	switch (player->state) {
 		case 0:
 		case 1:
-			velocity = 0.1;
+			velocity = PLAYER_V;
 			break;
 		default:
 			velocity = 0;
@@ -131,9 +141,10 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	rotateVectorInXY(motionVector, player->lookAngleXY);
 	addVector(&player->position, motionVector);
+	setPlayerSpherePosition(player);
 	
 	for (i=0; i<stage->numberOfCuboid; i++) {
-		if(collidionWithCuboid(&stage->cuboids[i], player)){
+		if(collisionPlayerWithCuboid(player,&stage->cuboids[i])){
 			collision_flag ++;
 //			printf("%d\n",i);
 			break;
@@ -142,6 +153,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	if (collision_flag) {
 		setVector(&player->position, nowPosition->x);
+		setPlayerSpherePosition(player);
 	}
 	
 //	printf("\nbefore jump\n");
@@ -150,7 +162,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	//自然物理による移動(落下)
 	collision_flag = 0;
 	setVector(nowPosition, player->position.x);
-	if (af->jump && (player->state == 0) && (player->pauseCount == 0) &&0) {
+	if (af->jump && (player->state == 0) && (player->pauseCount == 0)) {
 		player->state = 1;
 		player->velocity.x[2] += 1.0;
 		player->pauseCount += 10;
@@ -162,8 +174,9 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	}
 	setPlayerVelocity(player);
 	addVector(&player->position, &player->velocity);
+	setPlayerSpherePosition(player);
 	for (i=0; i<stage->numberOfCuboid; i++) {
-		if(collidionWithCuboid(&stage->cuboids[i], player)){
+		if(collisionPlayerWithCuboid(player,&stage->cuboids[i])){
 			collision_flag ++;
 			break;
 		}
@@ -172,6 +185,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 		player->state = 0;
 		setVector(&player->velocity, zero);
 		setVector(&player->position, nowPosition->x);
+		setPlayerSpherePosition(player);
 	}
 	
 	free(nowPosition);
@@ -247,69 +261,75 @@ void drawPlayer(Player *player){
 	glPopMatrix();
 }
 
-
-int collidionWithCuboid(Cuboid *cuboid,Player *player){
-	int i;
-	int flag1=0;
-	int flag2=0;
-	int flag3=0;
-	int flag4=0;
-	double buf[3];
-	double player_x = player->position.x[0];
-	double player_y = player->position.x[1];
-	double player_r = player->radius;
-	double player_maxZ = player->position.x[2] + player->height + 2*player_r;
-	double player_minZ = player->position.x[2];
-	double cube_maxX = cuboid->maxPosition.x[0];
-	double cube_minX = cuboid->position.x[0];
-	double cube_maxY = cuboid->maxPosition.x[1];
-	double cube_minY = cuboid->position.x[1];
-	double cube_maxZ = cuboid->maxPosition.x[2];
-	double cube_minZ = cuboid->position.x[2];
-	Vector *vector1;
-	Vector *vector2;
+char collisionPlayerWithSquare(Player *player,Square *square){
+	int i,j;
+	char collision_flag[2];
+	char collision_flag2;
+	Matrix *A;
+	Vector *dist;
+	double x[3],b[3],d[3];
+	double squre_x[2],squre_y[2],distance[2],dx,dy,r;
+	r = player->radius;
+	A = (Matrix *)malloc(sizeof(Matrix));
+	dist = (Vector *)malloc(sizeof(Vector));
+	initMatrix3dWith3Column(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
 	
-	vector1 = (Vector *)malloc(sizeof(Vector));
-	vector2 = (Vector *)malloc(sizeof(Vector));
-	
-	if (((cube_maxZ > player_minZ) && (cube_minZ < player_minZ))||
-		((cube_maxZ > player_maxZ) && (cube_minZ < player_maxZ))) {
-		flag1 = 1;
-//		printf("1:%f 2:%f 3:%f 4:%f\n",cube_maxZ,cube_minZ,player_maxZ,player_minZ);
-	}
-	buf[0]=player_x;
-	buf[1]=player_y;
-	buf[2]=0.0;
-	setVector(vector1, buf);
-	for (i=0; i<4; i++) {
-		buf[0]=cuboid->node[i][0]+cuboid->position.x[0];
-		buf[1]=cuboid->node[i][1]+cuboid->position.x[1];
-		buf[2]=0.0;
-		setVector(vector2, buf);
-//		printf("1:%f 2:%f 3:%f 4:%f\n",cuboid->node[i][0],cuboid->node[i][1],cuboid->position.x[0],cuboid->position.x[1]);
-		if (distanceBetweenVectors(vector1, vector2) < (player_r + MARGIN)) {
-			flag2 ++;
+	for (i=0; i<2; i++) {
+		collision_flag[i] = 0;
+		for (j=0; j<3; j++){
+			if (i==0) {
+				b[j] = player->lowSpherePosition.x[j] - square->zeroNode.x[j];
+			}else{
+				b[j] = player->highSpherePosition.x[j] - square->zeroNode.x[j];
+			}
+		}
+		solveSimultaneousEquation(A, x, b);
+		squre_x[i] = x[0];
+		squre_y[i] = x[1];
+		distance[i] = -x[2];
+		if (squre_x[i] > square->size[0]) {
+			dx = squre_x[i] - square->size[0];
+		}else if (squre_x[i] < 0) {
+			dx = squre_x[i];
+		}else{
+			dx = 0;
+		}
+		if (squre_y[i] > square->size[1]) {
+			dy = squre_y[i] - square->size[1];
+		}else if (squre_y[i]< 0) {
+			dy = squre_y[i];
+		}else{
+			dy = 0;
+		}
+		d[0] = dx;
+		d[1] = dy;
+		d[2] = distance[i];
+		setVector(dist, d);
+		if (getValueOfVector(dist) < MARGIN + r) {
+			collision_flag[i] = 1;
 		}
 	}
-	
-	if (((cube_maxX + player_r + MARGIN) >  player_x )&&
-		((cube_minX - player_r - MARGIN) < player_x )&&
-		((cube_maxY + MARGIN) >  player_y )&&
-		((cube_minY - MARGIN) < player_y )){
-		flag3 ++;
+	collision_flag2=0;
+	if (dx == 0 && dy == 0 && (distance[0]*distance[1]<0)) {
+		collision_flag2 = 1;
 	}
-	if (((cube_maxX + MARGIN) >  player_x )&&
-		((cube_minX - MARGIN) < player_x )&&
-		((cube_maxY + player_r + MARGIN) >  player_y)&&
-		((cube_minY - player_r - MARGIN) < player_y)){
-		flag4 ++;
+	free(dist);
+	free(A);
+	return collision_flag[0] || collision_flag[1] || collision_flag2;
+}
+
+
+char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
+	int i;
+	char collision_flag;
+	collision_flag = 0;
+	for (i=0; i<6; i++) {
+		if (collisionPlayerWithSquare(player, &cuboid->paintableFaces[i].squareFace)) {
+			collision_flag = 1;
+			break;
+		}
 	}
-	
-	free(vector1);
-	free(vector2);
-	
-//	printf("1:%d 2:%d 3:%d 4:%d\n",flag1,flag2,flag3,flag4);
-	return flag1 && (flag2 || flag3 || flag4);
+	return collision_flag;
 }
 
 void printPlayer(Player *player){
@@ -343,8 +363,8 @@ void initBulletWithPlayer(Bullet bullet[],Player *player){
 		x[1] = -0.3;
 		x[2] = 0.5;
 		e[0] = 1.0 + 1.0*rand()/RAND_MAX;
-		e[1] = 0.0 + 0.2*rand()/RAND_MAX;
-		e[2] = 0.0 + 0.2*rand()/RAND_MAX;
+		e[1] = -0.08 + 0.16*rand()/RAND_MAX;
+		e[2] = 0.0 + 0.15*rand()/RAND_MAX;
 		setVector(initPosition, x);
 		rotateVectorInXY(initPosition, player->lookAngleXY);
 		addVector(initPosition, &player->position);
@@ -441,12 +461,13 @@ void drawBullet(Bullet *bullet){
 	glTranslated(posi[0], posi[1], posi[2] + r);
 	glRotated(angle, normal->x[0], normal->x[1], normal->x[2]);
 	glPushMatrix();
-	glScalef(0.7, 0.7, 3);
+	glScaled(0.7, 0.7, 3);
 	glutSolidSphere(r, SLICE, SLICE);
 	glPopMatrix();
 	glPushMatrix();
-	glTranslated(rand()/RAND_MAX * 1, rand()/RAND_MAX * 1, -rand()/RAND_MAX * 1);
-	glScalef(rand()/RAND_MAX *1, rand()/RAND_MAX *1, rand()/RAND_MAX * 5);
+//	glTranslated(rand()/RAND_MAX * 0.3, rand()/RAND_MAX * 0.3, -rand()/RAND_MAX * 1.0);
+	glTranslated(1.0, 0,0);
+	glScaled( rand()/RAND_MAX * 0.5, rand()/RAND_MAX * 0.5, rand()/RAND_MAX * 7.0);
 	glutSolidSphere(r, SLICE, SLICE);
 	glPopMatrix();
 //	glPushMatrix();
@@ -589,12 +610,12 @@ void initStage(Stage *stage){
 	int i;
 	Cuboid* cuboids = stage->cuboids;
 	double cuboid_size[][3] = {
-		{10,50,10},
-		{1,1,1},
-		{1,10,10},
-		{1,1,1},
-		{1,1,1},
-		{1,1,1},
+		{10,10,10},
+		{20,15,10},
+		{30,30,10},
+		{10,10,10},
+		{20,15,10},
+		{30,30,10},
 		{1,1,1},
 		{1,1,1},
 		{1,1,1},
@@ -602,12 +623,12 @@ void initStage(Stage *stage){
 	};
 	double cuboid_position[][3] = {
 		{-5,-5,-10},
-		{1,1,0},
-		{5,-5,-5},
-		{3,0,0},
-		{5,0,0},
-		{7,0,0},
-		{9,0,0},
+		{-10,5,-10},
+		{-10,20,-10},
+		{-10,95,-10},
+		{-10,80,-10},
+		{-10,50,-10},
+		{9,0,-5},
 		{10,0,0},
 		{1,0,0},
 		{1,0,0}
@@ -615,7 +636,7 @@ void initStage(Stage *stage){
 	stage->size[0] = STAGE_MAX_X;
 	stage->size[1] = STAGE_MAX_Y;
 	stage->size[2] = STAGE_MAX_Z;
-	stage->numberOfCuboid = 3;
+	stage->numberOfCuboid = 6;
 	for(i=0;i<stage->numberOfCuboid;i++)
 		initCuboidWithSize3dAndPosition3d(&cuboids[i], cuboid_size[i], cuboid_position[i]);
 //	printCuboid(&cuboids[1]);
