@@ -243,7 +243,7 @@ void drawPaintSquare(Square *square){
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[PLAYER_COLOR]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[PLAYER_COLOR]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[PLAYER_COLOR]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(offset, &square->normalVector);
@@ -282,7 +282,7 @@ void drawPaintSquare(Square *square){
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[COMP_COLOR]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[COMP_COLOR]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[COMP_COLOR]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(offset, &square->normalVector);
@@ -324,6 +324,17 @@ void drawPaintSquare(Square *square){
 	free(buf);
 	free(basicVector);
 	
+}
+
+int getScoreFromSquare(Square *square,char color){
+	int i,j;
+	int sum = 0;
+	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
+		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
+			if (square->paintSquare.state[i][j] == 1) sum++;
+		}
+	}
+	return sum;
 }
 
 void drawCuboid(Cuboid *cuboid){
@@ -369,6 +380,17 @@ void printCuboid(Cuboid *cuboid){
 	}
 }
 
+int getScoreFromCuboid(Cuboid *cuboid,char color){
+	int i;
+	int sum = 0;
+	if (!cuboid->isVisible) {
+		return 0;
+	}
+	for (i=0; i<6; i++) {
+		sum += getScoreFromSquare(&cuboid->paintableFaces[i].squareFace,color);
+	}
+	return sum;
+}
 
 
 

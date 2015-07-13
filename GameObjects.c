@@ -202,9 +202,6 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	free(nowPosition);
 	free(motionVector);
-	
-//	printf("\nafter jump\n");
-//	printPlayer(player);
 }
 
 void movePlayerLookAngle(Player *player,ActionFlag *af){
@@ -754,6 +751,15 @@ void drawStage(Stage *stage){
 		drawCuboidPaintableFace(&cuboids[i]);
 	}
 //	free(cuboids);
+}
+
+int getScore(Stage *stage,char color){
+	int i;
+	int sum = 0;
+	for (i=0; i<stage->numberOfCuboid; i++) {
+		sum += getScoreFromCuboid(&stage->cuboids[i],color);
+	}
+	return sum;
 }
 
 ////////////////////////

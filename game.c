@@ -1,4 +1,5 @@
-﻿#include <stdlib.h>
+﻿#include <stdio.h>
+#include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -54,7 +55,8 @@ void myTimerFunc(int value){
 	movePlayer(player1, mainStage,af);
 	moveCamera(mainCamera, player1);
 	moveBullets(bulletList,mainStage);
-	if (collisionPlayerWithBullets(player1, bulletList)) {
+	if (collisionPlayerWithBullets(player1, bulletList)
+		|| (player1->position.x[2]< -STAGE_MAX_Z)) {
 		killPlayer(player1, firstPlayerPosition);
 	}
 	if (af->shot  && (player1->shotPauseCount == 0)) {
@@ -68,7 +70,8 @@ void myTimerFunc(int value){
 	//COMP
 	getCompAciton(afOfCom);
 	movePlayer(comPlayer, mainStage,afOfCom);
-	if (collisionPlayerWithBullets(comPlayer, bulletList)) {
+	if (collisionPlayerWithBullets(comPlayer, bulletList)
+		|| (comPlayer->position.x[2]< -STAGE_MAX_Z)) {
 		killPlayer(comPlayer, firstCompPosition);
 	}
 	if (afOfCom->shot  && (comPlayer->shotPauseCount == 0)) {
@@ -79,6 +82,10 @@ void myTimerFunc(int value){
 	}
 
 	glLoadIdentity();
+	
+	if (af->look_up) {
+		printf("Score is %d\n",getScore(mainStage, 1));
+	}
 	
 	lookByCamera(mainCamera);
 
@@ -121,12 +128,12 @@ void init(void){
 	initPlayer(player1);
 	player1->color = PLAYER_COLOR;
 	initCamera(mainCamera, player1);
-	initVectorWithXYZ(firstPlayerPosition, 0, 0, 1);
+	initVectorWithXYZ(firstPlayerPosition, 0, 0, 0.1);
 	
 	initPlayer(comPlayer);
 	comPlayer->color = COMP_COLOR;
 	comPlayer->lookAngleXY = -90;
-	initVectorWithXYZ(firstCompPosition, 0, 50, 5);
+	initVectorWithXYZ(firstCompPosition, 0, 50, 0.1);
 	setPlayerPosition(comPlayer, firstCompPosition);
 	
 	
@@ -139,6 +146,7 @@ void init(void){
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(0.0, -10.0, 2.0, 0.0, 0.0, 1.5, 0.0, 0.0, 1.0);
+	glLightfv(GL_LIGHT1, GL_POSITION, pos0);
 	glLightfv(GL_LIGHT1, GL_POSITION, pos1);
 	glLightfv(GL_LIGHT1, GL_DIFFUSE, colors[WHITE]);
 	myTimerFunc(0);

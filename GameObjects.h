@@ -9,7 +9,7 @@
 #define PLAYER_V 0.2
 #define BULLET_G (0.01)
 #define BULLET_V 0.7
-#define BULLET_RADIUS 0.3
+#define BULLET_RADIUS 0.5
 #define MAX_BULLET 256
 #define STAGE_MAX_X 128
 #define STAGE_MAX_Y 128
@@ -115,6 +115,7 @@ void removeBullet(BulletList *bulletList,int index);
 
 void initStage(Stage *stage);
 void drawStage(Stage *stage);
+int getScore(Stage *stage,char color);
 
 void initActionFlag(ActionFlag *af);
 void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue);

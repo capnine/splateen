@@ -56,6 +56,7 @@ void initSquareWith4Nodes(Square *square,Node nodes[]);
 void printSquare(Square *squre);
 void paintSquare(Square *square,double xy[],double paintSize,char color);
 void drawPaintSquare(Square *square);
+int getScoreFromSquare(Square *square,char color);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
 void initPaintSquare(PaintSquare *paintSquare,double size[]);
@@ -69,6 +70,7 @@ void setCuboidAllParameter(Cuboid *cuboid);
 void drawCuboid(Cuboid *cuboid);
 void drawCuboidPaintableFace(Cuboid *cuboid);
 void printCuboid(Cuboid *cuboid);
+int getScoreFromCuboid(Cuboid *cuboid,char color);
 
 
 #endif
