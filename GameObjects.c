@@ -38,7 +38,7 @@ void initCamera(Camera *camera,Player *player){
 }
 
 void moveCamera(Camera *camera,Player *player){
-	double x[3] = {5,0,2};
+	double x[3] = {13,0,2};
 	Vector *vectorToCameraFromPlayer;
 	vectorToCameraFromPlayer = (Vector *)malloc(sizeof(Vector));
 	
@@ -623,7 +623,7 @@ void initStage(Stage *stage){
 	//cuboidsをたくさん設定してもstage->numberOfCuboid分しか描画、判定されません。
 	int i;
 	Cuboid* cuboids = stage->cuboids;
-	char cuboid_isVisible[] = {1,0,1,1,1,1,1,1,1,1,1,1,1};
+	char cuboid_isVisible[] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
 	double cuboid_size[][3] = {
 		{10,10,10},
 		{20,15,10},
