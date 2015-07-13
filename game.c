@@ -91,9 +91,9 @@ void myTimerFunc(int value){
 	
 	lookByCamera(mainCamera);
 	
-	if (GameOverCount++ < 1000) {
+	if (GameOverCount++ < MAX_GAME_TIME) {
 		if (GameOverCount%100 == 0) {
-			printf("%d\n",(1000-GameOverCount)/100);
+			printf("%d\n",(MAX_GAME_TIME-GameOverCount)/100);
 		}
 		glutTimerFunc(10, myTimerFunc, 0);
 	}else{

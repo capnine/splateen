@@ -165,7 +165,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	if (collision_flag || player->dyingTime) {
 		setPlayerPosition(player, nowPosition);
 		if (player->isComp) {
-			player->lookAngleXY += 5;
+			player->lookAngleXY += 60 + 60*(rand()/RAND_MAX);
 		}
 		if (player->dyingTime) {
 			player->dyingTime--;
