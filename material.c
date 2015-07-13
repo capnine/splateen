@@ -16,9 +16,9 @@ GLfloat colors[][4] = {
 	{ 0.0, 1.0, 0.0, 1.0 },
 	{ 0.0, 0.0, 1.0, 1.0 },
 	{ 1.0, 0.553, 0.156, 1.0   },
-	{ 1.0, 0.0, 1.0, 1.0 },
-	{ 0.0, 1.0, 1.0, 1.0 },
-	{ 0.7, 0.7, 0.7, 1.0 },
+	{ 0.4, 0.4, 0.4, 1.0 },
+	{ 0.5843, 0.5804, 0.5020, 1.0 },
+	{ 0.25, 0.25, 0.25, 1.0 },
 	{ 0.0, 0.0, 0.0, 1.0 } };
 
 
@@ -232,48 +232,73 @@ void paintSquare(Square *square,double xy[],double paintSize,char color){
 }
 
 void drawPaintSquare(Square *square){
-	int i,j;
+	int i,j,prePainted,lineLast;
 	Vector *offset;
 	Vector *buf;
 	Vector *basicVector;
 	offset = (Vector *)malloc(sizeof(Vector));
 	buf = (Vector *)malloc(sizeof(Vector)*4);
 	basicVector = (Vector *)malloc(sizeof(Vector)*4);
+	prePainted = 0;
+	lineLast = 0;
 	
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[PLAYER_COLOR]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[PLAYER_COLOR]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glMaterialf(GL_FRONT, GL_SHININESS, 10.0);
+	glNormal3dv(square->normalVector.x);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(offset, &square->normalVector);
 	changeLengthOfVector(offset, 0.001);
 	glTranslatef(offset->x[0], offset->x[1], offset->x[2]);
 	glBegin(GL_QUADS);
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
+		lineLast = 0;
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-			if (!((square->paintSquare.state[i][j]) == 1))continue;
-//			if ((i^j)&1) continue;
-			copyVector(&basicVector[0], &square->basicVector[0]);
-			copyVector(&basicVector[1], &square->basicVector[0]);
-			copyVector(&basicVector[2], &square->basicVector[1]);
-			copyVector(&basicVector[3], &square->basicVector[1]);
-			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
-			copyVector(&buf[0], &basicVector[0]);
-			addVector(&buf[0], &basicVector[2]);
-			copyVector(&buf[1], &basicVector[1]);
-			addVector(&buf[1], &basicVector[2]);
-			copyVector(&buf[2], &basicVector[1]);
-			addVector(&buf[2], &basicVector[3]);
-			copyVector(&buf[3], &basicVector[0]);
-			addVector(&buf[3], &basicVector[3]);
-			glVertex3dv(buf[0].x);
-			glVertex3dv(buf[1].x);
-			glVertex3dv(buf[2].x);
-			glVertex3dv(buf[3].x);
+			if (!((square->paintSquare.state[i][j]) == 1) || j==square->paintSquare.numberOfElement[1]-1 ){
+				if (prePainted) {
+					if (j==square->paintSquare.numberOfElement[1]-1) {
+						lineLast = 1;
+					}
+					if (!lineLast) {
+						j--;
+					}
+					copyVector(&basicVector[0], &square->basicVector[0]);
+					copyVector(&basicVector[1], &square->basicVector[0]);
+					copyVector(&basicVector[3], &square->basicVector[1]);
+					changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+					changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+					changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+					copyVector(&buf[2], &basicVector[1]);
+					addVector(&buf[2], &basicVector[3]);
+					copyVector(&buf[3], &basicVector[0]);
+					addVector(&buf[3], &basicVector[3]);
+					glVertex3dv(buf[2].x);
+					glVertex3dv(buf[3].x);
+					if (!lineLast) {
+						j++;
+					}
+					prePainted = 0;
+				}
+				continue;
+			}
+			if (!prePainted) {
+				//start
+				copyVector(&basicVector[0], &square->basicVector[0]);
+				copyVector(&basicVector[1], &square->basicVector[0]);
+				copyVector(&basicVector[2], &square->basicVector[1]);
+				changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+				changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+				changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+				copyVector(&buf[0], &basicVector[0]);
+				addVector(&buf[0], &basicVector[2]);
+				copyVector(&buf[1], &basicVector[1]);
+				addVector(&buf[1], &basicVector[2]);
+				glVertex3dv(buf[0].x);
+				glVertex3dv(buf[1].x);
+				prePainted = 1;
+			}
 		}
 	}
 	glEnd();
@@ -283,37 +308,87 @@ void drawPaintSquare(Square *square){
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[COMP_COLOR]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[COMP_COLOR]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glMaterialf(GL_FRONT, GL_SHININESS, 10.0);
+	glNormal3dv(square->normalVector.x);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(offset, &square->normalVector);
 	changeLengthOfVector(offset, 0.001);
 	glTranslatef(offset->x[0], offset->x[1], offset->x[2]);
 	glBegin(GL_QUADS);
+//	
+//	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
+//		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
+//			if (!((square->paintSquare.state[i][j]) == 2))continue;
+//			//			if ((i^j)&1) continue;
+//			copyVector(&basicVector[0], &square->basicVector[0]);
+//			copyVector(&basicVector[1], &square->basicVector[0]);
+//			copyVector(&basicVector[2], &square->basicVector[1]);
+//			copyVector(&basicVector[3], &square->basicVector[1]);
+//			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+//			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+//			copyVector(&buf[0], &basicVector[0]);
+//			addVector(&buf[0], &basicVector[2]);
+//			copyVector(&buf[1], &basicVector[1]);
+//			addVector(&buf[1], &basicVector[2]);
+//			copyVector(&buf[2], &basicVector[1]);
+//			addVector(&buf[2], &basicVector[3]);
+//			copyVector(&buf[3], &basicVector[0]);
+//			addVector(&buf[3], &basicVector[3]);
+//			glVertex3dv(buf[0].x);
+//			glVertex3dv(buf[1].x);
+//			glVertex3dv(buf[2].x);
+//			glVertex3dv(buf[3].x);
+//		}
+//	}
 	
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-			if (!((square->paintSquare.state[i][j]) == 2))continue;
-			//			if ((i^j)&1) continue;
-			copyVector(&basicVector[0], &square->basicVector[0]);
-			copyVector(&basicVector[1], &square->basicVector[0]);
-			copyVector(&basicVector[2], &square->basicVector[1]);
-			copyVector(&basicVector[3], &square->basicVector[1]);
-			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
-			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
-			copyVector(&buf[0], &basicVector[0]);
-			addVector(&buf[0], &basicVector[2]);
-			copyVector(&buf[1], &basicVector[1]);
-			addVector(&buf[1], &basicVector[2]);
-			copyVector(&buf[2], &basicVector[1]);
-			addVector(&buf[2], &basicVector[3]);
-			copyVector(&buf[3], &basicVector[0]);
-			addVector(&buf[3], &basicVector[3]);
-			glVertex3dv(buf[0].x);
-			glVertex3dv(buf[1].x);
-			glVertex3dv(buf[2].x);
-			glVertex3dv(buf[3].x);
+			lineLast = 0;
+			if (!((square->paintSquare.state[i][j]) == 2) || j==square->paintSquare.numberOfElement[1]-1){
+				if (prePainted) {
+					if (j==square->paintSquare.numberOfElement[1]-1) {
+						lineLast = 1;
+					}
+					if (!lineLast) {
+						j--;
+					}
+					copyVector(&basicVector[0], &square->basicVector[0]);
+					copyVector(&basicVector[1], &square->basicVector[0]);
+					copyVector(&basicVector[3], &square->basicVector[1]);
+					changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+					changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+					changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+					copyVector(&buf[2], &basicVector[1]);
+					addVector(&buf[2], &basicVector[3]);
+					copyVector(&buf[3], &basicVector[0]);
+					addVector(&buf[3], &basicVector[3]);
+					glVertex3dv(buf[2].x);
+					glVertex3dv(buf[3].x);
+					prePainted = 0;
+					if (!lineLast) {
+						j++;
+					}
+				}
+				continue;
+			}
+			if (!prePainted) {
+				//start
+				copyVector(&basicVector[0], &square->basicVector[0]);
+				copyVector(&basicVector[1], &square->basicVector[0]);
+				copyVector(&basicVector[2], &square->basicVector[1]);
+				changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+				changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+				changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+				copyVector(&buf[0], &basicVector[0]);
+				addVector(&buf[0], &basicVector[2]);
+				copyVector(&buf[1], &basicVector[1]);
+				addVector(&buf[1], &basicVector[2]);
+				glVertex3dv(buf[0].x);
+				glVertex3dv(buf[1].x);
+				prePainted = 1;
+			}
 		}
 	}
 	glEnd();
@@ -337,6 +412,53 @@ int getScoreFromSquare(Square *square,char color){
 	return sum;
 }
 
+double getSwimVelocityRate(Square *square,double position2d[],int player_number){
+	double velocity_rate = 1.0;
+	int position_number[2];
+	int position_number_buf[2];
+	int i;
+	int map[5][2] = {
+		{0,0},
+		{0,1},
+		{0,-1},
+		{1,0},
+		{-1,0},
+	};
+	position_number[0] = position2d[0] / PAINTCELL_SIZE;
+	position_number[1] = position2d[1] / PAINTCELL_SIZE;
+	
+	
+	for (i=0; i<5; i++) {
+		position_number_buf[0] = map[i][0] + position_number[0];
+		position_number_buf[1] = map[i][1] + position_number[1];
+		if (position_number_buf[0] < 0){
+			position_number_buf[0] = 0;
+		}
+		if (position_number_buf[0] >= square->paintSquare.numberOfElement[0]) {
+			position_number_buf[0] = square->paintSquare.numberOfElement[0]-1;
+		}
+		if (position_number_buf[1] < 0){
+			position_number_buf[1] = 0;
+		}
+		if (position_number_buf[1] >= square->paintSquare.numberOfElement[1]) {
+			position_number_buf[1] = square->paintSquare.numberOfElement[1]-1;
+		}
+		switch (square->paintSquare.state[position_number_buf[0]][position_number_buf[1]]) {
+			case 0:
+				break;
+			case 1:
+				velocity_rate *= 1.5;
+				break;
+			case 2:
+				velocity_rate *= 0.7;
+				break;
+			default:
+				break;
+		}
+	}
+	return velocity_rate;
+}
+
 void drawCuboid(Cuboid *cuboid){
 	int i, j;
 	
@@ -345,10 +467,10 @@ void drawCuboid(Cuboid *cuboid){
 	}
 	
 	glPushMatrix();
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[GRAY]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[CONCLI]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[DARK_GRAY]);
+//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE] );
+	glMaterialf(GL_FRONT, GL_SHININESS, 10.0);
 //	printf("1:\n");
 	for (i = 0; i < 6; i++){
 		glBegin(GL_QUADS);

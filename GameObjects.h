@@ -6,16 +6,18 @@
 
 #define PLAYER_G (9.8*0.007)
 #define PLAYER_SHOT_INTERVAL 10
-#define PLAYER_V 0.2
+#define PLAYER_V 0.15
 #define BULLET_G (0.01)
 #define BULLET_V 0.7
 #define BULLET_RADIUS 0.5
 #define MAX_BULLET 256
 #define STAGE_MAX_X 128
 #define STAGE_MAX_Y 128
-#define STAGE_MAX_Z 20
-#define MAX_CUBOIDS 20
+#define STAGE_MAX_Z 10
+#define MAX_CUBOIDS 127
 #define DYING_TIME 200
+
+extern enum PLAYER_STATE {ON_GRAND,IN_AIR,SWIMMING};
 
 typedef struct {
 	double distance;
@@ -37,9 +39,14 @@ typedef struct{
 	double radius;
 	Vector velocity;
 	Vector acceleration;
+	Vector lookVector;
 	double lookAngleXY;
 	double lookAngleZ;
 	int dyingTime;
+	char swimmingCuboid;
+	char swimmingSquare;
+	double swimmingPosition2d[2];
+	double swimDistanceToSea;
 }Player;
 
 typedef struct{
@@ -81,6 +88,7 @@ typedef struct {
 	char look_down;
 	char jump;
 	char shot;
+	char swim;
 }ActionFlag;
 
 void initCamera(Camera *camera,Player *player);
@@ -91,13 +99,17 @@ void initPlayer(Player *player);
 void setPlayerVelocity(Player *player);
 void setPlayerPosition(Player *player,Vector *position);
 void setPlayerSpherePosition(Player *player);
+void setPlayerLookVector(Player *player);
+void actionPlayer(Player *player,Stage *stage,ActionFlag *af);
 void movePlayer(Player *player,Stage *stage,ActionFlag *af);
+void swimPlayer(Player *player,Stage *stage,ActionFlag *af);
 void drawPlayer(Player *player);
 void movePlayerLookAngle(Player *player,ActionFlag *af);
 void shotBullet(Player *player,BulletList *bulletList);
 void killPlayer(Player *player,Vector *initPosition);
 void printPlayer(Player *player);
 char collisionPlayerWithSquare(Player *player,Square *square);
+char canSwimWithSquare(Player *player,Square *square);
 char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
 char collisionPlayerWithBullet(Player *player,Bullet *bullet);
 char collisionPlayerWithBullets(Player *player,BulletList *bulletList);

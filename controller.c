@@ -34,6 +34,9 @@ void myKeyboardFunc(unsigned char key, int x, int y){
 		case 'e':
 			myKeyboardValue |= 1 << 5;
 			break;
+		case 'c':
+			myKeyboardValue |= 1 << 6;
+			break;
 	}
 }
 
@@ -56,6 +59,9 @@ void myKeyboardUpFunc(unsigned char key, int x, int y){
 			break;
 		case 'e':
 			myKeyboardValue &= ~(1 << 5);
+			break;
+		case 'c':
+			myKeyboardValue &= ~(1 << 6);
 			break;
 	}
 }

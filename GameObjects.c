@@ -7,6 +7,7 @@
 #endif
 #include "GameObjects.h"
 #include "physics.h"
+#include "game.h"
 #include <math.h>
 
 
@@ -79,7 +80,7 @@ void initPlayer(Player *player){
 	player->color = ORANGE;
 	player->height = 1.0;
 	player->radius = 0.3;
-	player->state = 0;
+	player->state = IN_AIR;
 	setVector(&player->position, x1);
 	setVector(&player->lowSpherePosition, x1);
 	player->lowSpherePosition.x[2] += player->radius;
@@ -112,6 +113,43 @@ void setPlayerSpherePosition(Player *player){
 	player->highSpherePosition.x[2] += player->height;
 }
 
+void setPlayerLookVector(Player *player){
+	Vector *vec;
+	vec = (Vector *)malloc(sizeof(Vector));
+	initVectorWithXYZ(vec, cos(PI*player->lookAngleZ/180), 0, sin(PI*player->lookAngleZ/180));
+	rotateVectorInXY(vec, player->lookAngleXY);
+	copyVector(&player->lookVector, vec);
+}
+
+void actionPlayer(Player *player,Stage *stage,ActionFlag *af){
+	
+	if (af->swim) {
+		player->state = SWIMMING;
+	}else if (player->state == SWIMMING){
+		player->state = IN_AIR;
+		addVector(&player->position, &stage->cuboids[player->swimmingCuboid].paintableFaces[player->swimmingSquare].squareFace.normalVector);
+		setPlayerSpherePosition(player);
+	}
+	
+	movePlayerLookAngle(player, af);
+	if (player->state != SWIMMING) {
+		movePlayer(player, stage,af);
+		if (af->shot  && (player->shotPauseCount == 0)) {
+			shotBullet(player, bulletList);
+			player->shotPauseCount = PLAYER_SHOT_INTERVAL;
+		}else{
+			if(player->shotPauseCount>0)player->shotPauseCount --;
+		}
+	}else{
+		swimPlayer(player, stage, af);
+	}
+	
+	if (collisionPlayerWithBullets(player, bulletList)
+		|| (player->position.x[2]< -STAGE_MAX_Z)) {
+		killPlayer(player, firstPlayerPosition);
+	}
+}
+
 void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	int i;
 	char collision_flag=0;
@@ -128,8 +166,8 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	setVector(motionVector, zero);
 	
 	switch (player->state) {
-		case 0:
-		case 1:
+		case ON_GRAND:
+		case IN_AIR:
 			velocity = PLAYER_V;
 			break;
 		default:
@@ -178,13 +216,13 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	//自然物理による移動(落下)
 	collision_flag = 0;
 	setVector(nowPosition, player->position.x);
-	if (af->jump && (player->state == 0) && (player->pauseCount == 0)) {
-		player->state = 1;
+	if (af->jump && (player->state == ON_GRAND) && (player->pauseCount == 0)) {
+		player->state = IN_AIR;
 		player->velocity.x[2] += 1.0;
 		player->pauseCount += 10;
 //		printf("%f",player->velocity.x[2]);
 	}else{
-		if ((player->state == 0) && (player->pauseCount > 0)) {
+		if ((player->state == ON_GRAND) && (player->pauseCount > 0)) {
 			player->pauseCount --;
 		}
 	}
@@ -198,7 +236,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 		}
 	}
 	if (collision_flag) {
-		player->state = 0;
+		player->state = ON_GRAND;
 		setVector(&player->velocity, zero);
 		setVector(&player->position, nowPosition->x);
 		setPlayerSpherePosition(player);
@@ -206,6 +244,79 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	free(nowPosition);
 	free(motionVector);
+}
+
+void swimPlayer(Player *player,Stage *stage,ActionFlag *af){
+	Vector *basicVector;
+	Vector *motionVector;
+	Square *swimsqare;
+	char swim_flag,i,j;
+	char cuboidx=-1,squarex=-1;
+	double min_distance=100;
+	double posi[3];
+	double velocity = 0.05;
+	double velocity_rate = 1;
+	double angle_radian = 0.0;
+	double inner[2];
+	basicVector = (Vector *)malloc(sizeof(Vector)*2);
+	motionVector = (Vector *)malloc(sizeof(Vector));
+	initVectorWithXYZ(motionVector, 0, 0, 0);
+	
+	swim_flag = 0;
+	for(i=0;i<3;i++) posi[i] = player->position.x[i];
+	for (i=0; i<stage->numberOfCuboid; i++) {
+		for (j=0; j<6; j++) {
+			if (canSwimWithSquare(player, &stage->cuboids[i].paintableFaces[j].squareFace)){
+				swim_flag = 1;
+				if (min_distance > player->swimDistanceToSea) {
+					min_distance = player->swimDistanceToSea;
+					player->swimmingCuboid = i;
+					player->swimmingSquare = j;
+					cuboidx = i;
+					squarex = j;
+				}
+			}
+		}
+	}
+	
+	if (!swim_flag) {
+		//		printf("%d\n",bullet->index);
+//		player->state = IN_AIR;
+//		setPlayerPosition(player, firstPlayerPosition);
+	}else{
+		
+		velocity_rate = getSwimVelocityRate(&stage->cuboids[cuboidx].paintableFaces[squarex].squareFace, player->swimmingPosition2d, 1);
+		
+		swimsqare = &stage->cuboids[cuboidx].paintableFaces[squarex].squareFace;
+		copyVector(&basicVector[0], &swimsqare->basicVector[0]);
+		copyVector(&basicVector[1], &swimsqare->basicVector[1]);
+		if (af->move_right) {
+			addVector(motionVector, &basicVector[0]);
+		}
+		if (af->move_left) {
+			minusVector(motionVector, &basicVector[0]);
+		}
+		if (af->move_up) {
+			addVector(motionVector, &basicVector[1]);
+		}
+		if (af->move_down) {
+			minusVector(motionVector, &basicVector[1]);
+		}
+		
+		setPlayerLookVector(player);
+		inner[0] = innerVector(&player->lookVector, &basicVector[0]);
+		inner[1] = innerVector(&player->lookVector, &basicVector[1]);
+		inner[0] /= sqrt(inner[0]*inner[0]+inner[1]*inner[1]);
+		angle_radian = acos(inner[0]);
+		if (inner[1] < 0) {
+			angle_radian *= -1.0;
+		}
+		
+		rotateVectorInXY(motionVector, angle_radian*180/PI - 90);
+		
+		changeLengthOfVector(motionVector, velocity*velocity_rate);
+		addVector(&player->position, motionVector);
+	}
 }
 
 void movePlayerLookAngle(Player *player,ActionFlag *af){
@@ -257,30 +368,36 @@ void drawPlayer(Player *player){
 	double h = player->height;
 	double r = player->radius;
 	double theta;
+	double offset;
+	
+	offset = player->lookAngleXY;
 	
 	glPushMatrix();
 	posi = player->position.x;
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[player->color]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[player->color]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glMaterialf(GL_FRONT, GL_SHININESS, 10.0);
 	
-	glTranslated(posi[0], posi[1], posi[2] + r);
-	glutSolidSphere(r, SLICE, SLICE);
-	
-	glBegin(GL_QUAD_STRIP);
-	for(i=0;i<=SLICE;i++){
-		theta = 2*PI *i/SLICE;
-		glNormal3f(cos(theta),sin(theta),0.0);
-		glVertex3f((r*cos(theta)),r*sin(theta),h);
-		glVertex3f((r*cos(theta)),r*sin(theta),0);
+	if (player->state != SWIMMING) {
+		glTranslated(posi[0], posi[1], posi[2] + r);
+		glutSolidSphere(r, SLICE, SLICE);
+		
+		glBegin(GL_QUAD_STRIP);
+		for(i=0;i<=SLICE;i++){
+			theta = 2*PI *i/SLICE + offset;
+			glVertex3d((r*cos(theta)),r*sin(theta),h);
+			glVertex3d((r*cos(theta)),r*sin(theta),0);
+			glNormal3d(cos(theta),sin(theta),0.0);
+		}
+		glEnd();
+		
+		glTranslated(0,0,h);
+		glutSolidSphere(r, SLICE, SLICE);
+	}else{
+		glTranslated(posi[0], posi[1], posi[2]);
+		glutSolidSphere(r, SLICE, SLICE);
 	}
-	glEnd();
-	
-	glTranslated(0,0,h);
-	glutSolidSphere(r, SLICE, SLICE);
-	
-	
 	glPopMatrix();
 }
 
@@ -343,6 +460,42 @@ char collisionPlayerWithSquare(Player *player,Square *square){
 	return collision_flag[0] || collision_flag[1] || collision_flag2;
 }
 
+char canSwimWithSquare(Player *player,Square *square){
+	int j;
+	char collision_flag;
+	Matrix *A;
+	Vector *dist;
+	double x[3],b[3],d[3];
+	double squre_x,squre_y,distance,r;
+	
+	r = player->radius;
+	A = (Matrix *)malloc(sizeof(Matrix));
+	dist = (Vector *)malloc(sizeof(Vector));
+	initMatrix3dWith3Column(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
+	
+	collision_flag = 0;
+	for (j=0; j<3; j++)  b[j] = player->position.x[j] - square->zeroNode.x[j];
+	solveSimultaneousEquation(A, x, b);
+	squre_x = x[0];
+	squre_y = x[1];
+	distance = -x[2];
+	
+	if ((distance < r )&&
+		(squre_x > 0+r/2 )&&(squre_x < square->size[0]-r/2) &&
+		(squre_y > 0+r/2 )&&(squre_y < square->size[1]-r/2)) {
+		collision_flag = 1;
+	}
+	
+	if (collision_flag) {
+		player->swimmingPosition2d[0] = squre_x;
+		player->swimmingPosition2d[1] = squre_y;
+		player->swimDistanceToSea = distance;
+	}
+	
+	free(dist);
+	free(A);
+	return collision_flag;
+}
 
 char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
 	int i;
@@ -359,7 +512,7 @@ char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
 
 char collisionPlayerWithBullet(Player *player,Bullet *bullet){
 	char collision_flag = 0;
-	double a,d,da,r_d,r_player,r_bullet,sum;
+	double a,d,da,r_sum,r_player,r_bullet,sum;
 	double player_height;
 	Vector *distance;
 	Vector *playerToBullet;//プレイヤーポジション(lowPosi)から球まで
@@ -374,6 +527,18 @@ char collisionPlayerWithBullet(Player *player,Bullet *bullet){
 	distance = (Vector *)malloc(sizeof(Vector));
 	playerToBullet = (Vector *)malloc(sizeof(Vector));
 	playerLowToHigh = (Vector *)malloc(sizeof(Vector));
+	
+	r_sum = r_player + r_bullet;
+	
+	if (player->state == SWIMMING) {
+		copyVector(playerToBullet, &bullet->position);
+		minusVector(playerToBullet, &player->position);
+		d = getValueOfVector(playerToBullet);
+		if (d < r_sum) {
+			collision_flag = 1;
+		}
+		return collision_flag;
+	}
 	
 	copyVector(playerToBullet, &bullet->position);
 	minusVector(playerToBullet, &player->lowSpherePosition);
@@ -402,7 +567,7 @@ char collisionPlayerWithBullet(Player *player,Bullet *bullet){
 	sum = da*da + d*d;
 	r_player = player->radius;
 	r_bullet = bullet->radius;
-	if (sqrt(sum) < r_player + r_bullet) {
+	if (sqrt(sum) < r_sum) {
 		collision_flag = 1;
 	}
 
@@ -556,7 +721,7 @@ void drawBullet(Bullet *bullet){
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[bullet->color]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[bullet->color]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glMaterialf(GL_FRONT, GL_SHININESS, 10.0);
 	
 	glTranslated(posi[0], posi[1], posi[2] + r);
 	glRotated(angle, normal->x[0], normal->x[1], normal->x[2]);
@@ -729,7 +894,7 @@ void initStage(Stage *stage){
 		{10,10,10},
 		{20,15,10},
 		{30,30,10},
-		{1,10,1},/**/
+		{1,10,1},
 		{5,1,1},
 		{1,15,1},
 		{10,1,1},
@@ -811,6 +976,7 @@ void initActionFlag(ActionFlag *af){
 	af->look_right = 0;
 	af->jump = 0;
 	af->shot = 0;
+	af->swim = 0;
 }
 
 void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
@@ -824,6 +990,7 @@ void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
 	af->look_down	= mySpecialValue & (1 << 3);
 	af->jump	= myKeyboardValue & (1 << 5);
 	af->shot	= myKeyboardValue & (1 << 0);
+	af->swim	= myKeyboardValue & (1 << 6);
 }
 
 void getCompAciton(ActionFlag *af){

@@ -9,7 +9,7 @@
 #define PAINT_SIZE 4
 #define PAINT_MAX_CELLS 516
 
-enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, MAGENTA, CYAN, GRAY, BLACK };
+enum COLOR { WHITE, RED, GREEN, BLUE, ORANGE, GRAY, CONCLI, DARK_GRAY };
 extern GLfloat colors[][4];
 
 typedef struct {
@@ -57,6 +57,7 @@ void printSquare(Square *squre);
 void paintSquare(Square *square,double xy[],double paintSize,char color);
 void drawPaintSquare(Square *square);
 int getScoreFromSquare(Square *square,char color);
+double getSwimVelocityRate(Square *square,double position2d[],int player_number);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
 void initPaintSquare(PaintSquare *paintSquare,double size[]);
