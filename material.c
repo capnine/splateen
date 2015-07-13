@@ -152,6 +152,7 @@ void setNode(Cuboid *cuboid){
 
 void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]){
 	int i,j;
+	cuboid->isVisible = 1;
 	for (i=0; i<3; i++)	cuboid->position.x[i]=position[i];
 	for (i=0; i<3; i++)	cuboid->size3d[i]=size[i];
 	cuboid->color=0;
@@ -172,6 +173,10 @@ void setCuboidMaxPosition(Cuboid *cuboid){
 	for (i=0; i<3; i++) {
 		cuboid->maxPosition.x[i] = cuboid->position.x[i] + cuboid->size3d[i];
 	}
+}
+
+void setCuboidIsVisible(Cuboid *cuboid,char isVisible){
+	cuboid->isVisible = isVisible;
 }
 
 void setCuboidCuboidFace(Cuboid *cuboid){
@@ -311,6 +316,10 @@ void drawPaintSquare(Square *square){
 void drawCuboid(Cuboid *cuboid){
 	int i, j;
 	
+	if (!cuboid->isVisible) {
+		return;
+	}
+	
 	glPushMatrix();
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[GRAY]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
@@ -330,6 +339,9 @@ void drawCuboid(Cuboid *cuboid){
 
 void drawCuboidPaintableFace(Cuboid *cuboid){
 	int i;
+	if (!cuboid->isVisible) {
+		return;
+	}
 	for (i=0; i<6; i++) {
 		if (cuboid->paintableFaces[i].isPaintable) {
 			drawPaintSquare(&cuboid->paintableFaces[i].squareFace);

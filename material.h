@@ -62,6 +62,7 @@ void initPaintSquare(PaintSquare *paintSquare,double size[]);
 
 void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]);
 void setCuboidMaxPosition(Cuboid *cuboid);
+void setCuboidIsVisible(Cuboid *cuboid,char isVisible);
 void setCuboidCuboidFace(Cuboid *cuboid);
 void setCuboidNormalvec(Cuboid *cuboid);
 void setCuboidAllParameter(Cuboid *cuboid);

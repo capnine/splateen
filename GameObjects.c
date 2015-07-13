@@ -76,6 +76,7 @@ void initPlayer(Player *player){
 	double x1[3]={0,0,0.5};
 	double x2[3]={0,0,0};
 	double x3[3]={0,0,-PHYSICS_G};
+	player->color = GREEN;
 	player->height = 1.0;
 	player->radius = 0.3;
 	player->state = 0;
@@ -96,6 +97,12 @@ void initPlayer(Player *player){
 void setPlayerVelocity(Player *player){
 	addVector(&player->velocity, &player->acceleration);
 }
+
+void setPlayerPosition(Player *player,Vector *position){
+	copyVector(&player->position, position);
+	setPlayerSpherePosition(player);
+}
+
 void setPlayerSpherePosition(Player *player){
 	copyVector(&player->lowSpherePosition, &player->position);
 	player->lowSpherePosition.x[2] += player->radius;
@@ -153,8 +160,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	}
 	
 	if (collision_flag) {
-		setVector(&player->position, nowPosition->x);
-		setPlayerSpherePosition(player);
+		setPlayerPosition(player, nowPosition);
 	}
 	
 //	printf("\nbefore jump\n");
@@ -238,7 +244,7 @@ void drawPlayer(Player *player){
 	
 	glPushMatrix();
 	posi = player->position.x;
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[GRAY]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[player->color]);
 	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
@@ -591,6 +597,10 @@ char collisionBulletWithSquare(Bullet *bullet,Square *square){
 
 char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
 	char collision_flag,i;
+	
+	if (!cuboid->isVisible) {
+		return 0;
+	}
 	collision_flag = 0;
 	for (i=0; i<6; i++) {
 		if (collisionBulletWithSquare(bullet, &cuboid->paintableFaces[i].squareFace)) {
@@ -609,8 +619,11 @@ char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
 
 
 void initStage(Stage *stage){
+	//ステージの設定は、まずstage->numberOfCuboidを設定してください
+	//cuboidsをたくさん設定してもstage->numberOfCuboid分しか描画、判定されません。
 	int i;
 	Cuboid* cuboids = stage->cuboids;
+	char cuboid_isVisible[] = {1,0,1,1,1,1,1,1,1,1,1,1,1};
 	double cuboid_size[][3] = {
 		{10,10,10},
 		{20,15,10},
@@ -635,12 +648,14 @@ void initStage(Stage *stage){
 		{1,0,0},
 		{1,0,0}
 	};
+	stage->numberOfCuboid = 6;
 	stage->size[0] = STAGE_MAX_X;
 	stage->size[1] = STAGE_MAX_Y;
 	stage->size[2] = STAGE_MAX_Z;
-	stage->numberOfCuboid = 6;
-	for(i=0;i<stage->numberOfCuboid;i++)
+	for(i=0;i<stage->numberOfCuboid;i++){
 		initCuboidWithSize3dAndPosition3d(&cuboids[i], cuboid_size[i], cuboid_position[i]);
+		setCuboidIsVisible(&cuboids[i], cuboid_isVisible[i]);
+	}
 //	printCuboid(&cuboids[1]);
 }
 

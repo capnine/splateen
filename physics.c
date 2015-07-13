@@ -54,6 +54,12 @@ void changeRowsOfMatrix(Matrix *A,int a,int b){
 	}
 }
 
+void initVectorWithXYZ(Vector *vector,double x,double y,double z){
+	vector->x[0] = x;
+	vector->x[1] = y;
+	vector->x[2] = z;
+}
+
 void setVector(Vector *vector,double x[3]){
 	int i;
 	for(i=0;i<3;i++){

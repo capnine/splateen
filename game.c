@@ -14,9 +14,11 @@ GLfloat pos1[] = { 0.0, 0.0, 10.0, 1.0 };
 
 Camera *mainCamera;
 Player *player1;
+Player *comPlayer;
 Stage *mainStage;
 BulletList *bulletList;
 ActionFlag *af;
+ActionFlag *afOfCom;
 
 void idle(void)
 {
@@ -33,8 +35,9 @@ void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix();
-
+	
 	drawPlayer(player1);
+	drawPlayer(comPlayer);
 	drawStage(mainStage);
 	drawBullets(bulletList);
 
@@ -45,6 +48,7 @@ void myTimerFunc(int value){
 	
 	getActionFlag(af, mySpecialValue, myKeyboardValue);
 	movePlayer(player1, mainStage,af);
+	movePlayer(comPlayer, mainStage,afOfCom);
 	moveCamera(mainCamera, player1);
 	moveBullets(bulletList,mainStage);
 	if (af->jump  && (player1->shotPauseCount == 0)) {
@@ -63,6 +67,9 @@ void myTimerFunc(int value){
 }
 
 void init(void){
+	Vector *buf;
+	buf = (Vector *)malloc(sizeof(Vector));
+	
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -81,13 +88,22 @@ void init(void){
 	
 	mainCamera = (Camera *)malloc(sizeof(Camera));
 	player1 = (Player *)malloc(sizeof(Player));
+	comPlayer = (Player *)malloc(sizeof(Player));
 	mainStage = (Stage *)malloc(sizeof(Stage));
 	bulletList = (BulletList *)malloc(sizeof(BulletList));
 	af = (ActionFlag *)malloc(sizeof(ActionFlag));
+	afOfCom = (ActionFlag *)malloc(sizeof(ActionFlag));
 	
 	initController();
 	initActionFlag(af);
+	initActionFlag(afOfCom);
 	initPlayer(player1);
+	
+	initPlayer(comPlayer);
+	comPlayer->color = RED;
+	initVectorWithXYZ(buf, 0, 50, 5);
+	setPlayerPosition(comPlayer, buf);
+	
 	initCamera(mainCamera, player1);
 	initBulletList(bulletList);
 	initStage(mainStage);

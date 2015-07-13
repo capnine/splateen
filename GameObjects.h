@@ -24,6 +24,7 @@ typedef struct {
 }Camera;
 
 typedef struct{
+	char color;
 	char state;//0:地面、1:空中
 	char pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
 	char shotPauseCount;//この値が0以外の時はshotできない
@@ -83,6 +84,7 @@ void lookByCamera(Camera *camera);
 
 void initPlayer(Player *player);
 void setPlayerVelocity(Player *player);
+void setPlayerPosition(Player *player,Vector *position);
 void setPlayerSpherePosition(Player *player);
 void movePlayer(Player *player,Stage *stage,ActionFlag *af);
 void drawPlayer(Player *player);
