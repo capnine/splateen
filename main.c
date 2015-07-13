@@ -11,10 +11,6 @@
 
 int main(int argc, char *argv[])
 {
-	void *x;
-	x=NULL;
-	printf("%d\n",NULL);
-	printf("%d\n",x == NULL);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(500, 500);
 	glutInit(&argc, argv);
