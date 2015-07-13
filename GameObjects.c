@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -480,7 +480,6 @@ void drawBullet(Bullet *bullet){
 
 void initBulletList(BulletList *bulletList){
 	bulletList->counter = 0;
-	bulletList = (BulletList *)malloc(sizeof(bulletList));
 	bulletList->firstBulletElement = NULL;
 	bulletList->lastBulletElement = NULL;
 }

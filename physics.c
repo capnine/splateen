@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -133,9 +133,10 @@ void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVecto
 }
 
 void rotateVectorInXY(Vector *rotatedVector,double angle){
+	double theta;
 	Vector *buf;
 	buf = (Vector *)malloc(sizeof(Vector));
-	double theta = 2*PI*angle/360.0;
+	theta = 2*PI*angle/360.0;
 	setVector(buf, rotatedVector->x);
 	rotatedVector->x[0]= cos(theta) * buf->x[0] - sin(theta) * buf->x[1];
 	rotatedVector->x[1]= sin(theta) * buf->x[0] + cos(theta) * buf->x[1];

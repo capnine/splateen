@@ -1,15 +1,20 @@
- #ifdef __APPLE__
+﻿ #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
 #endif
 
+#include <stdio.h>
 #include <math.h>
 #include "game.h"
 
 
 int main(int argc, char *argv[])
 {
+	void *x;
+	x=NULL;
+	printf("%d\n",NULL);
+	printf("%d\n",x == NULL);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(500, 500);
 	glutInit(&argc, argv);

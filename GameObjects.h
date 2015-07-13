@@ -1,4 +1,4 @@
-#ifndef __gltest__GameObjects__
+﻿#ifndef __gltest__GameObjects__
 #define __gltest__GameObjects__
 
 #include "physics.h"

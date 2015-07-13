@@ -1,4 +1,4 @@
-#ifndef PHYSICS_H
+﻿#ifndef PHYSICS_H
 #define PHYSICS_H
 
 #define PI 3.14159
