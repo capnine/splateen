@@ -92,6 +92,7 @@ void initPlayer(Player *player){
 	player->pauseCount = 0;
 	player->shotPauseCount = 0;
 	player->dyingTime = 0;
+	player->isComp = 0;
 }
 
 
@@ -163,6 +164,9 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	
 	if (collision_flag || player->dyingTime) {
 		setPlayerPosition(player, nowPosition);
+		if (player->isComp) {
+			player->lookAngleXY += 5;
+		}
 		if (player->dyingTime) {
 			player->dyingTime--;
 		}
@@ -632,51 +636,58 @@ void drawBullets(BulletList *bulletList){
 }
 
 char collisionBulletWithSquare(Bullet *bullet,Square *square){
-	int i;
-	char collision_flag;
+	int i,j;
+	char collision_flag[2];
+	double squre_x,squre_y,distance,dx,dy,r;
 	Matrix *A;
 	Vector *dist;
-	double x[3],b[3],d[3];
-	double squre_x,squre_y,distance,dx,dy,r;
-	collision_flag = 0;
-	r = bullet->radius;
+	double x[2][3],b[2][3],d[2][3];
 	A = (Matrix *)malloc(sizeof(Matrix));
 	dist = (Vector *)malloc(sizeof(Vector));
-	initMatrix3dWith3Column(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
-	for (i=0; i<3; i++) b[i] = bullet->position.x[i] - square->zeroNode.x[i];
-	solveSimultaneousEquation(A, x, b);
-	squre_x = x[0];
-	squre_y = x[1];
-	distance = -x[2];
-	if (squre_x > square->size[0]) {
-		dx = squre_x - square->size[0];
-	}else if (squre_x < 0) {
-		dx = squre_x;
-	}else{
-		dx = 0;
+	
+	for (j=0; j<2; j++) {
+		
+		collision_flag[j] = 0;
+		r = bullet->radius;
+		initMatrix3dWith3Column(A, square->basicVector[0].x, square->basicVector[1].x, square->normalVector.x);
+		for (i=0; i<3; i++) b[j][i] = bullet->position.x[i] - square->zeroNode.x[i];
+		solveSimultaneousEquation(A, x[j], b[j]);
+		squre_x = x[j][0];
+		squre_y = x[j][1];
+		distance = -x[j][2];
+		if (squre_x > square->size[0]) {
+			dx = squre_x - square->size[0];
+		}else if (squre_x < 0) {
+			dx = squre_x;
+		}else{
+			dx = 0;
+		}
+		if (squre_y > square->size[1]) {
+			dy = squre_y - square->size[1];
+		}else if (squre_y < 0) {
+			dy = squre_y;
+		}else{
+			dy = 0;
+		}
+		d[j][0] = dx;
+		d[j][1] = dy;
+		d[j][2] = distance;
+		setVector(dist, d[j]);
+		if (getValueOfVector(dist) < MARGIN + r) {
+			//		printf("sq_x:%4f,sq_y:%4f\n",squre_x,squre_y);
+			//		printf("sq_x:%4f,sq_y:%4f\n",square->size[1],squre_y-square->size[1]);
+			//		printf("dx:%4f,dy:%4f\n",dx,dy);
+			//		printVector(dist);
+			paintSquare(square, x[j],bullet->radius*PAINT_SIZE,bullet->color);
+			collision_flag[j] = 1;
+		}
 	}
-	if (squre_y > square->size[1]) {
-		dy = squre_y - square->size[1];
-	}else if (squre_y < 0) {
-		dy = squre_y;
-	}else{
-		dy = 0;
-	}
-	d[0] = dx;
-	d[1] = dy;
-	d[2] = distance;
-	setVector(dist, d);
-	if (getValueOfVector(dist) < MARGIN + r) {
-//		printf("sq_x:%4f,sq_y:%4f\n",squre_x,squre_y);
-//		printf("sq_x:%4f,sq_y:%4f\n",square->size[1],squre_y-square->size[1]);
-//		printf("dx:%4f,dy:%4f\n",dx,dy);
-//		printVector(dist);
-		paintSquare(square, x,bullet->radius*PAINT_SIZE,bullet->color);
-		collision_flag = 1;
+	if ((!(collision_flag[0] || collision_flag[1] )) && (d[0][2]*d[1][2]<0)) {
+		paintSquare(square, x[j],bullet->radius*PAINT_SIZE,bullet->color);
 	}
 	free(dist);
 	free(A);
-	return collision_flag;
+	return collision_flag[0] || collision_flag[1] || (d[0][2]*d[1][2]<0);
 }
 
 char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
@@ -707,7 +718,7 @@ void initStage(Stage *stage){
 	//cuboidsをたくさん設定してもstage->numberOfCuboid分しか描画、判定されません。
 	int i;
 	Cuboid* cuboids = stage->cuboids;
-	char cuboid_isVisible[] = {1,1,1,1,1,1,1,1,1,1,1,1,1};
+	char cuboid_isVisible[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 	double cuboid_size[][3] = {
 		{10,10,10},
 		{20,15,10},
@@ -715,10 +726,20 @@ void initStage(Stage *stage){
 		{10,10,10},
 		{20,15,10},
 		{30,30,10},
-		{1,1,1},
-		{1,1,1},
-		{1,1,1},
-		{1,1,1}
+		{1,10,1},/**/
+		{5,1,1},
+		{1,15,1},
+		{10,1,1},
+		{1,60,1},
+		{11,1,1},
+		{1,15,1},
+		{10,1,1},
+		{1,10,1},
+		{10,1,1},
+		{11,1,1},
+		{1,10,1},
+		{6,1,1},
+		{1,101,1}
 	};
 	double cuboid_position[][3] = {
 		{-5,-5,-10},
@@ -727,12 +748,22 @@ void initStage(Stage *stage){
 		{-10,95,-10},
 		{-10,80,-10},
 		{-10,50,-10},
-		{9,0,-5},
-		{10,0,0},
-		{1,0,0},
-		{1,0,0}
+		{5,-5,0},/**/
+		{6,4,0},
+		{10,5,0},
+		{11,19,0},
+		{20,20,0},
+		{10,80,0},
+		{10,81,0},
+		{0,95,0},
+		{0,96,0},
+		{-10,105,0},/*ステージの一番後ろに戻る*/
+		{-5,-6,0},
+		{-6,-6,0},
+		{-11,4,0},
+		{-11,5,0}
 	};
-	stage->numberOfCuboid = 6;
+	stage->numberOfCuboid = 20;
 	stage->size[0] = STAGE_MAX_X;
 	stage->size[1] = STAGE_MAX_Y;
 	stage->size[2] = STAGE_MAX_Z;
@@ -793,17 +824,18 @@ void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
 }
 
 void getCompAciton(ActionFlag *af){
-	double rd;
+//	double rd;
 	initActionFlag(af);
-	rd = 10.0*rand()/RAND_MAX;
+//	rd = 10.0*rand()/RAND_MAX;
+//	if (rd > 3) {
+//		af->move_up = 1;
+//	}else if (rd > 2){
+//		af->move_left = 1;
+//	}else if (rd > 1){
+//		af->move_right = 1;
+//	}
 	af->shot = 1;
-	if (rd > 3) {
-		af->move_up = 1;
-	}else if (rd > 2){
-		af->move_left = 1;
-	}else if (rd > 1){
-		af->move_right = 1;
-	}
+	af->move_up = 1;
 }
 
 

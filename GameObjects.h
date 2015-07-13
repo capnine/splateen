@@ -29,6 +29,7 @@ typedef struct{
 	char state;//0:地面、1:空中
 	char pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
 	char shotPauseCount;//この値が0以外の時はshotできない
+	char isComp;
 	Vector position;
 	Vector lowSpherePosition;
 	Vector highSpherePosition;

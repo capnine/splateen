@@ -21,6 +21,8 @@ BulletList *bulletList;
 ActionFlag *af;
 ActionFlag *afOfCom;
 
+int GameOverCount = 0;
+
 Vector *firstPlayerPosition;
 Vector *firstCompPosition;
 
@@ -83,18 +85,27 @@ void myTimerFunc(int value){
 
 	glLoadIdentity();
 	
-	if (af->look_up) {
-		printf("Score is %d\n",getScore(mainStage, 1));
-	}
+//	if (af->look_up) {
+//		printf("Score is %d\n",getScore(mainStage, 1));
+//	}
 	
 	lookByCamera(mainCamera);
-
-	glutTimerFunc(10, myTimerFunc, 0);
+	
+	if (GameOverCount++ < 1000) {
+		if (GameOverCount%100 == 0) {
+			printf("%d\n",(1000-GameOverCount)/100);
+		}
+		glutTimerFunc(10, myTimerFunc, 0);
+	}else{
+		printf("*********************\n");
+		printf("******GAME OVER******\n");
+		printf("*********************\n");
+		
+		printf("- Your score is %d -\n",getScore(mainStage, 1));
+	}
 }
 
 void init(void){
-	Vector *buf;
-	buf = (Vector *)malloc(sizeof(Vector));
 	
 	glClearColor(1.0, 1.0, 1.0, 0.0);
 	glEnable(GL_DEPTH_TEST);
@@ -131,6 +142,7 @@ void init(void){
 	initVectorWithXYZ(firstPlayerPosition, 0, 0, 0.1);
 	
 	initPlayer(comPlayer);
+	comPlayer->isComp = 1;
 	comPlayer->color = COMP_COLOR;
 	comPlayer->lookAngleXY = -90;
 	initVectorWithXYZ(firstCompPosition, 0, 50, 0.1);
