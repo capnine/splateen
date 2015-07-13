@@ -422,7 +422,10 @@ char collisionPlayerWithBullets(Player *player,BulletList *bulletList){
 		return 0;
 	}
 	while (bulletx != NULL) {
-		if(collisionPlayerWithBullet(player, bulletx->bullet)) return 1;
+		if(collisionPlayerWithBullet(player, bulletx->bullet)){
+			removeBullet(bulletList, bulletx->bullet->index);
+			return 1;
+		}
 		bulletx = bulletx->next;
 	}
 	return 0;
@@ -494,12 +497,6 @@ void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage){
 	double posi[3];
 	collision_flag = 0;
 	for(i=0;i<3;i++) posi[i] = bullet->position.x[i];
-	for (i=0; i<3; i++) {
-		if (posi[i] > stage->size[i] || posi[i] < -stage->size[i]) {
-			removeBullet(bulletList, bullet->index);
-			return;
-		}
-	}
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		if (collisionBulletWithCuboid(bullet, &stage->cuboids[i])) {
 //			printf("coli#%d\n",i);
@@ -511,6 +508,12 @@ void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage){
 //		printf("%d\n",bullet->index);
 		removeBullet(bulletList, bullet->index);
 	}else{
+		for (i=0; i<3; i++) {
+			if (posi[i] > stage->size[i] || posi[i] < -stage->size[i]) {
+				removeBullet(bulletList, bullet->index);
+				return;
+			}
+		}
 		copyVector(&bullet->position, &bullet->nextPosition);
 		bullet->velocity.x[2] -= BULLET_G;
 		addVector(&bullet->nextPosition, &bullet->velocity);
