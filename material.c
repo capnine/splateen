@@ -6,6 +6,7 @@
 #include <GL/glut.h>
 #endif
 #include <math.h>
+#include "game.h"
 #include "physics.h"
 #include "material.h"
 
@@ -175,8 +176,8 @@ void setCuboidMaxPosition(Cuboid *cuboid){
 	}
 }
 
-void setCuboidIsVisible(Cuboid *cuboid,char isVisible){
-	cuboid->isVisible = isVisible;
+void setCuboidIsVisible(Cuboid *cuboid,char isTrue){
+	cuboid->isVisible = isTrue;
 }
 
 void setCuboidCuboidFace(Cuboid *cuboid){
@@ -210,7 +211,7 @@ void setCuboidAllParameter(Cuboid *cuboid){
 	setCuboidNormalvec(cuboid);
 }
 
-void paintSquare(Square *square,double xy[],double paintSize){
+void paintSquare(Square *square,double xy[],double paintSize,char color){
 	int i,j;
 	double p,q,r;
 	for (i=0; i<square->paintSquare.numberOfElement[0]; i++) {
@@ -219,7 +220,7 @@ void paintSquare(Square *square,double xy[],double paintSize){
 			q = (double)(j+1.0/2.0) * PAINTCELL_SIZE - xy[1];
 			r = sqrt(p*p+q*q);
 			if (r<paintSize) {
-				square->paintSquare.state[i][j] = 1;
+				square->paintSquare.state[i][j] = color;
 			}
 		}
 	}
@@ -235,9 +236,9 @@ void drawPaintSquare(Square *square){
 	basicVector = (Vector *)malloc(sizeof(Vector)*4);
 	
 	glPushMatrix();
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[ORANGE]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[ORANGE]);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[PLAYER_COLOR]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[PLAYER_COLOR]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[PLAYER_COLOR]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
 	copyVector(offset, &square->normalVector);
@@ -271,39 +272,34 @@ void drawPaintSquare(Square *square){
 		}
 	}
 	glEnd();
-
-//	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[WHITE]);
-//	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[BLACK]);
-//	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
-//	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
-//	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
-//	glBegin(GL_QUADS);
-//	for (i = 1; i < square->paintSquare.numberOfElement[0]; i++){
-//		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-//			if (!((square->paintSquare.state[i][j]) & 1))continue;
-//			copyVector(&basicVector[0], &square->basicVector[0]);
-//			copyVector(&basicVector[1], &square->basicVector[0]);
-//			copyVector(&basicVector[2], &square->basicVector[1]);
-//			copyVector(&basicVector[3], &square->basicVector[1]);
-//			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
-//			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
-//			copyVector(&buf[0], &basicVector[0]);
-//			addVector(&buf[0], &basicVector[2]);
-//			copyVector(&buf[1], &basicVector[1]);
-//			addVector(&buf[1], &basicVector[2]);
-//			copyVector(&buf[2], &basicVector[1]);
-//			addVector(&buf[2], &basicVector[3]);
-//			copyVector(&buf[3], &basicVector[0]);
-//			addVector(&buf[3], &basicVector[3]);
-//			glVertex3dv(buf[0].x);
-//			glVertex3dv(buf[1].x);
-//			glVertex3dv(buf[2].x);
-//			glVertex3dv(buf[3].x);
-//		}
-//	}
-//	glEnd();
+	
+	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
+		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
+			if (!((square->paintSquare.state[i][j]) & 2))continue;
+			//			if ((i^j)&1) continue;
+			copyVector(&basicVector[0], &square->basicVector[0]);
+			copyVector(&basicVector[1], &square->basicVector[0]);
+			copyVector(&basicVector[2], &square->basicVector[1]);
+			copyVector(&basicVector[3], &square->basicVector[1]);
+			changeLengthOfVector(&basicVector[0], i*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[1], (i+1)*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[2], j*PAINTCELL_SIZE);
+			changeLengthOfVector(&basicVector[3], (j+1)*PAINTCELL_SIZE);
+			copyVector(&buf[0], &basicVector[0]);
+			addVector(&buf[0], &basicVector[2]);
+			copyVector(&buf[1], &basicVector[1]);
+			addVector(&buf[1], &basicVector[2]);
+			copyVector(&buf[2], &basicVector[1]);
+			addVector(&buf[2], &basicVector[3]);
+			copyVector(&buf[3], &basicVector[0]);
+			addVector(&buf[3], &basicVector[3]);
+			glVertex3dv(buf[0].x);
+			glVertex3dv(buf[1].x);
+			glVertex3dv(buf[2].x);
+			glVertex3dv(buf[3].x);
+		}
+	}
+	glEnd();
 	
 	glPopMatrix();
 	

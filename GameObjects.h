@@ -44,6 +44,7 @@ typedef struct{
 	Vector nextPosition;
 	Vector velocity;
 	double radius;
+	char color;
 	int index;
 }Bullet;
 
@@ -76,6 +77,7 @@ typedef struct {
 	char look_up;
 	char look_down;
 	char jump;
+	char shot;
 }ActionFlag;
 
 void initCamera(Camera *camera,Player *player);

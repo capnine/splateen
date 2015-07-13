@@ -76,7 +76,7 @@ void initPlayer(Player *player){
 	double x1[3]={0,0,0.5};
 	double x2[3]={0,0,0};
 	double x3[3]={0,0,-PHYSICS_G};
-	player->color = GREEN;
+	player->color = ORANGE;
 	player->height = 1.0;
 	player->radius = 0.3;
 	player->state = 0;
@@ -368,6 +368,7 @@ void initBulletWithPlayer(Bullet bullet[],Player *player){
 	bulletVelocity = (Vector *)malloc(sizeof(Vector));
 	
 	for (i=0; i<4; i++) {
+		bullet[i].color = player->color;
 		x[0] = 0.0;
 		x[1] = -0.3;
 		x[2] = 0.5;
@@ -462,8 +463,8 @@ void drawBullet(Bullet *bullet){
 	posi = bullet->position.x;
 	SLICE = 20;
 	glPushMatrix();
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[ORANGE]);
-	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[ORANGE]);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[bullet->color]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[bullet->color]);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[WHITE]);
 	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
 	
@@ -587,7 +588,7 @@ char collisionBulletWithSquare(Bullet *bullet,Square *square){
 //		printf("sq_x:%4f,sq_y:%4f\n",square->size[1],squre_y-square->size[1]);
 //		printf("dx:%4f,dy:%4f\n",dx,dy);
 //		printVector(dist);
-		paintSquare(square, x,bullet->radius*PAINT_SIZE);
+		paintSquare(square, x,bullet->radius*PAINT_SIZE,bullet->color);
 		collision_flag = 1;
 	}
 	free(dist);
@@ -683,6 +684,7 @@ void initActionFlag(ActionFlag *af){
 	af->look_left = 0;
 	af->look_right = 0;
 	af->jump = 0;
+	af->shot = 0;
 }
 
 void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
@@ -694,7 +696,8 @@ void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
 	af->look_left	= mySpecialValue & (1 << 1);
 	af->look_right	= mySpecialValue & (1 << 2);
 	af->look_down	= mySpecialValue & (1 << 3);
-	af->jump	= myKeyboardValue & (1 << 0);
+	af->jump	= myKeyboardValue & (1 << 5);
+	af->shot	= myKeyboardValue & (1 << 0);
 }
 
 

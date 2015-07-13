@@ -51,7 +51,7 @@ void myTimerFunc(int value){
 	movePlayer(comPlayer, mainStage,afOfCom);
 	moveCamera(mainCamera, player1);
 	moveBullets(bulletList,mainStage);
-	if (af->jump  && (player1->shotPauseCount == 0)) {
+	if (af->shot  && (player1->shotPauseCount == 0)) {
 		shotBullet(player1, bulletList);
 		player1->shotPauseCount = PLAYER_SHOT_INTERVAL;
 	}else{
@@ -98,9 +98,10 @@ void init(void){
 	initActionFlag(af);
 	initActionFlag(afOfCom);
 	initPlayer(player1);
+	player1->color = PLAYER_COLOR;
 	
 	initPlayer(comPlayer);
-	comPlayer->color = RED;
+	comPlayer->color = COMP_COLOR;
 	initVectorWithXYZ(buf, 0, 50, 5);
 	setPlayerPosition(comPlayer, buf);
 	

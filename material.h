@@ -54,7 +54,7 @@ void initNode(Node *node, double x[3]);
 void copyNode(Node *settedNode,Node *sourceNode);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
 void printSquare(Square *squre);
-void paintSquare(Square *square,double xy[],double paintSize);
+void paintSquare(Square *square,double xy[],double paintSize,char color);
 void drawPaintSquare(Square *square);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
@@ -62,7 +62,7 @@ void initPaintSquare(PaintSquare *paintSquare,double size[]);
 
 void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]);
 void setCuboidMaxPosition(Cuboid *cuboid);
-void setCuboidIsVisible(Cuboid *cuboid,char isVisible);
+void setCuboidIsVisible(Cuboid *cuboid,char isTrue);
 void setCuboidCuboidFace(Cuboid *cuboid);
 void setCuboidNormalvec(Cuboid *cuboid);
 void setCuboidAllParameter(Cuboid *cuboid);
