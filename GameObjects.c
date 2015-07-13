@@ -269,6 +269,8 @@ char collisionPlayerWithSquare(Player *player,Square *square){
 	Vector *dist;
 	double x[3],b[3],d[3];
 	double squre_x[2],squre_y[2],distance[2],dx,dy,r;
+	
+	dx = dy = 0;
 	r = player->radius;
 	A = (Matrix *)malloc(sizeof(Matrix));
 	dist = (Vector *)malloc(sizeof(Vector));
