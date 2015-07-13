@@ -89,6 +89,7 @@ void initPlayer(Player *player){
 	player->lookAngleXY = 90;
 	player->lookAngleZ = -10;
 	player->pauseCount = 0;
+	player->shotPauseCount = 0;
 }
 
 
