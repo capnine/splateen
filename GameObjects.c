@@ -91,6 +91,7 @@ void initPlayer(Player *player){
 	player->lookAngleZ = -10;
 	player->pauseCount = 0;
 	player->shotPauseCount = 0;
+	player->dyingTime = 0;
 }
 
 
@@ -119,6 +120,7 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	Vector *motionVector;//入力による移動ベクトル
 	nowPosition = (Vector *)malloc(sizeof(Vector));
 	motionVector = (Vector *)malloc(sizeof(Vector));
+	
 	
 	//入力による移動
 	setVector(nowPosition, player->position.x);//復元用バッファ
@@ -159,8 +161,11 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 		}
 	}
 	
-	if (collision_flag) {
+	if (collision_flag || player->dyingTime) {
 		setPlayerPosition(player, nowPosition);
+		if (player->dyingTime) {
+			player->dyingTime--;
+		}
 	}
 	
 //	printf("\nbefore jump\n");
@@ -230,8 +235,18 @@ void shotBullet(Player *player,BulletList *bulletList){
 	int i;
 	Bullet *bullet;
 	bullet = (Bullet *)malloc(sizeof(Bullet)*4);
+	
+	if (player->dyingTime) {
+		return;
+	}
+	
 	initBulletWithPlayer(bullet, player);
 	for (i=0;i<4;i++) addBullet(bulletList, &bullet[i]);
+}
+
+void killPlayer(Player *player,Vector *initPosition){
+	copyVector(&player->position, initPosition);
+	player->dyingTime = DYING_TIME;
 }
 
 void drawPlayer(Player *player){
@@ -339,6 +354,77 @@ char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
 		}
 	}
 	return collision_flag;
+}
+
+char collisionPlayerWithBullet(Player *player,Bullet *bullet){
+	char collision_flag = 0;
+	double a,d,da,r_d,r_player,r_bullet,sum;
+	double player_height;
+	Vector *distance;
+	Vector *playerToBullet;//プレイヤーポジション(lowPosi)から球まで
+	Vector *playerLowToHigh;//プレイヤーの下の球から上の球まで
+	Vector *normalPlayerLowToHigh;//長さ０バージョン
+	
+	if (player->color == bullet->color) {
+		return 0;
+	}
+	
+	normalPlayerLowToHigh = (Vector *)malloc(sizeof(Vector));
+	distance = (Vector *)malloc(sizeof(Vector));
+	playerToBullet = (Vector *)malloc(sizeof(Vector));
+	playerLowToHigh = (Vector *)malloc(sizeof(Vector));
+	
+	copyVector(playerToBullet, &bullet->position);
+	minusVector(playerToBullet, &player->lowSpherePosition);
+	
+	copyVector(playerLowToHigh, &player->highSpherePosition);
+	minusVector(playerLowToHigh, &player->lowSpherePosition);
+	
+	player_height = getValueOfVector(playerLowToHigh);
+	copyVector(normalPlayerLowToHigh, playerLowToHigh);
+	changeLengthOfVector(normalPlayerLowToHigh, 1.0/player_height);
+	
+	a = innerVector(playerToBullet, normalPlayerLowToHigh);
+	changeLengthOfVector(normalPlayerLowToHigh, a);
+	copyVector(distance, playerToBullet);
+	minusVector(distance, normalPlayerLowToHigh);
+	d = getValueOfVector(distance);
+	
+	if (da > player_height) {
+		da = a - player_height;
+	}else if (da < 0){
+		da = a;
+	}else{
+		da = 0;
+	}
+	
+	sum = da*da + d*d;
+	r_player = player->radius;
+	r_bullet = bullet->radius;
+	if (sqrt(sum) < r_player + r_bullet) {
+		collision_flag = 1;
+	}
+
+	free(distance);
+	free(playerToBullet);
+	free(playerLowToHigh);
+	free(normalPlayerLowToHigh);
+	
+	return collision_flag;
+}
+
+char collisionPlayerWithBullets(Player *player,BulletList *bulletList){
+	
+	BulletListElement *bulletx;
+	bulletx = bulletList->firstBulletElement;
+	if (bulletx == NULL) {
+		return 0;
+	}
+	while (bulletx != NULL) {
+		if(collisionPlayerWithBullet(player, bulletx->bullet)) return 1;
+		bulletx = bulletx->next;
+	}
+	return 0;
 }
 
 void printPlayer(Player *player){
@@ -698,6 +784,20 @@ void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue){
 	af->look_down	= mySpecialValue & (1 << 3);
 	af->jump	= myKeyboardValue & (1 << 5);
 	af->shot	= myKeyboardValue & (1 << 0);
+}
+
+void getCompAciton(ActionFlag *af){
+	double rd;
+	initActionFlag(af);
+	rd = 10.0*rand()/RAND_MAX;
+	af->shot = 1;
+	if (rd > 3) {
+		af->move_up = 1;
+	}else if (rd > 2){
+		af->move_left = 1;
+	}else if (rd > 1){
+		af->move_right = 1;
+	}
 }
 
 

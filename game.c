@@ -20,6 +20,9 @@ BulletList *bulletList;
 ActionFlag *af;
 ActionFlag *afOfCom;
 
+Vector *firstPlayerPosition;
+Vector *firstCompPosition;
+
 void idle(void)
 {
 	glutPostRedisplay();
@@ -46,11 +49,14 @@ void display(void)
 }
 void myTimerFunc(int value){
 	
+	//PLAYER
 	getActionFlag(af, mySpecialValue, myKeyboardValue);
 	movePlayer(player1, mainStage,af);
-	movePlayer(comPlayer, mainStage,afOfCom);
 	moveCamera(mainCamera, player1);
 	moveBullets(bulletList,mainStage);
+	if (collisionPlayerWithBullets(player1, bulletList)) {
+		killPlayer(player1, firstPlayerPosition);
+	}
 	if (af->shot  && (player1->shotPauseCount == 0)) {
 		shotBullet(player1, bulletList);
 		player1->shotPauseCount = PLAYER_SHOT_INTERVAL;
@@ -58,6 +64,19 @@ void myTimerFunc(int value){
 		if(player1->shotPauseCount>0)player1->shotPauseCount --;
 	}
 	movePlayerLookAngle(player1, af);
+	
+	//COMP
+	getCompAciton(afOfCom);
+	movePlayer(comPlayer, mainStage,afOfCom);
+	if (collisionPlayerWithBullets(comPlayer, bulletList)) {
+		killPlayer(comPlayer, firstCompPosition);
+	}
+	if (afOfCom->shot  && (comPlayer->shotPauseCount == 0)) {
+		shotBullet(comPlayer, bulletList);
+		comPlayer->shotPauseCount = PLAYER_SHOT_INTERVAL;
+	}else{
+		if(comPlayer->shotPauseCount>0)comPlayer->shotPauseCount --;
+	}
 
 	glLoadIdentity();
 	
@@ -93,19 +112,24 @@ void init(void){
 	bulletList = (BulletList *)malloc(sizeof(BulletList));
 	af = (ActionFlag *)malloc(sizeof(ActionFlag));
 	afOfCom = (ActionFlag *)malloc(sizeof(ActionFlag));
+	firstPlayerPosition = (Vector *)malloc(sizeof(Vector));
+	firstCompPosition = (Vector *)malloc(sizeof(Vector));
 	
 	initController();
 	initActionFlag(af);
 	initActionFlag(afOfCom);
 	initPlayer(player1);
 	player1->color = PLAYER_COLOR;
+	initCamera(mainCamera, player1);
+	initVectorWithXYZ(firstPlayerPosition, 0, 0, 1);
 	
 	initPlayer(comPlayer);
 	comPlayer->color = COMP_COLOR;
-	initVectorWithXYZ(buf, 0, 50, 5);
-	setPlayerPosition(comPlayer, buf);
+	comPlayer->lookAngleXY = -90;
+	initVectorWithXYZ(firstCompPosition, 0, 50, 5);
+	setPlayerPosition(comPlayer, firstCompPosition);
 	
-	initCamera(mainCamera, player1);
+	
 	initBulletList(bulletList);
 	initStage(mainStage);
 

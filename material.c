@@ -220,7 +220,12 @@ void paintSquare(Square *square,double xy[],double paintSize,char color){
 			q = (double)(j+1.0/2.0) * PAINTCELL_SIZE - xy[1];
 			r = sqrt(p*p+q*q);
 			if (r<paintSize) {
-				square->paintSquare.state[i][j] = color;
+				if (color == PLAYER_COLOR) {
+					square->paintSquare.state[i][j] = 1;
+				}else{
+					square->paintSquare.state[i][j] = 2;
+				}
+				
 			}
 		}
 	}
@@ -247,7 +252,7 @@ void drawPaintSquare(Square *square){
 	glBegin(GL_QUADS);
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-			if (!((square->paintSquare.state[i][j]) & 1))continue;
+			if (!((square->paintSquare.state[i][j]) == 1))continue;
 //			if ((i^j)&1) continue;
 			copyVector(&basicVector[0], &square->basicVector[0]);
 			copyVector(&basicVector[1], &square->basicVector[0]);
@@ -273,9 +278,21 @@ void drawPaintSquare(Square *square){
 	}
 	glEnd();
 	
+	glPopMatrix();
+	glPushMatrix();
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, colors[COMP_COLOR]);
+	glMaterialfv(GL_FRONT, GL_AMBIENT, colors[COMP_COLOR]);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, colors[COMP_COLOR]);
+	glMaterialf(GL_FRONT, GL_SHININESS, 100.0);
+	glTranslatef(square->zeroNode.x[0], square->zeroNode.x[1], square->zeroNode.x[2]);
+	copyVector(offset, &square->normalVector);
+	changeLengthOfVector(offset, 0.001);
+	glTranslatef(offset->x[0], offset->x[1], offset->x[2]);
+	glBegin(GL_QUADS);
+	
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
 		for (j = 0; j < square->paintSquare.numberOfElement[1]; j++){
-			if (!((square->paintSquare.state[i][j]) & 2))continue;
+			if (!((square->paintSquare.state[i][j]) == 2))continue;
 			//			if ((i^j)&1) continue;
 			copyVector(&basicVector[0], &square->basicVector[0]);
 			copyVector(&basicVector[1], &square->basicVector[0]);

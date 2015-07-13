@@ -15,6 +15,7 @@
 #define STAGE_MAX_Y 128
 #define STAGE_MAX_Z 20
 #define MAX_CUBOIDS 20
+#define DYING_TIME 200
 
 typedef struct {
 	double distance;
@@ -37,6 +38,7 @@ typedef struct{
 	Vector acceleration;
 	double lookAngleXY;
 	double lookAngleZ;
+	int dyingTime;
 }Player;
 
 typedef struct{
@@ -92,9 +94,12 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af);
 void drawPlayer(Player *player);
 void movePlayerLookAngle(Player *player,ActionFlag *af);
 void shotBullet(Player *player,BulletList *bulletList);
+void killPlayer(Player *player,Vector *initPosition);
 void printPlayer(Player *player);
 char collisionPlayerWithSquare(Player *player,Square *square);
 char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
+char collisionPlayerWithBullet(Player *player,Bullet *bullet);
+char collisionPlayerWithBullets(Player *player,BulletList *bulletList);
 
 void initBulletWithPlayer(Bullet bullet[],Player *player);
 void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage);
@@ -113,5 +118,6 @@ void drawStage(Stage *stage);
 
 void initActionFlag(ActionFlag *af);
 void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue);
+void getCompAciton(ActionFlag *af);
 
 #endif /* defined(__gltest__GameObjects__) */
