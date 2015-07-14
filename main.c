@@ -1,6 +1,4 @@
 ﻿#ifdef __APPLE__
-#import <UIKit/UIKit.h>
-#import "AppDelegate.h"
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>

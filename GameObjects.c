@@ -528,6 +528,9 @@ int collisionPlayerWithBullet(Player *player,Bullet *bullet){
 	playerToBullet = (Vector *)malloc(sizeof(Vector));
 	playerLowToHigh = (Vector *)malloc(sizeof(Vector));
 	
+	r_player = player->radius;
+	r_bullet = bullet->radius;
+	
 	r_sum = r_player + r_bullet;
 	
 	if (player->state == SWIMMING) {
