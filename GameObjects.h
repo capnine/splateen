@@ -17,7 +17,7 @@
 #define MAX_CUBOIDS 127
 #define DYING_TIME 200
 
-extern enum PLAYER_STATE {ON_GRAND,IN_AIR,SWIMMING};
+enum PLAYER_STATE {ON_GRAND,IN_AIR,SWIMMING};
 
 typedef struct {
 	double distance;
@@ -27,11 +27,11 @@ typedef struct {
 }Camera;
 
 typedef struct{
-	char color;
-	char state;//0:地面、1:空中
-	char pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
-	char shotPauseCount;//この値が0以外の時はshotできない
-	char isComp;
+	int color;
+	int state;//0:地面、1:空中
+	int pauseCount;//この値が0以外の時はジャンプなどの入力を受け付けない
+	int shotPauseCount;//この値が0以外の時はshotできない
+	int isComp;
 	Vector position;
 	Vector lowSpherePosition;
 	Vector highSpherePosition;
@@ -43,8 +43,8 @@ typedef struct{
 	double lookAngleXY;
 	double lookAngleZ;
 	int dyingTime;
-	char swimmingCuboid;
-	char swimmingSquare;
+	int swimmingCuboid;
+	int swimmingSquare;
 	double swimmingPosition2d[2];
 	double swimDistanceToSea;
 }Player;
@@ -54,7 +54,7 @@ typedef struct{
 	Vector nextPosition;
 	Vector velocity;
 	double radius;
-	char color;
+	int color;
 	int index;
 }Bullet;
 
@@ -78,17 +78,17 @@ typedef struct {
 }Stage;
 
 typedef struct {
-	char move_up;
-	char move_down;
-	char move_right;
-	char move_left;
-	char look_right;
-	char look_left;
-	char look_up;
-	char look_down;
-	char jump;
-	char shot;
-	char swim;
+	int move_up;
+	int move_down;
+	int move_right;
+	int move_left;
+	int look_right;
+	int look_left;
+	int look_up;
+	int look_down;
+	int jump;
+	int shot;
+	int swim;
 }ActionFlag;
 
 void initCamera(Camera *camera,Player *player);
@@ -108,19 +108,19 @@ void movePlayerLookAngle(Player *player,ActionFlag *af);
 void shotBullet(Player *player,BulletList *bulletList);
 void killPlayer(Player *player,Vector *initPosition);
 void printPlayer(Player *player);
-char collisionPlayerWithSquare(Player *player,Square *square);
-char canSwimWithSquare(Player *player,Square *square);
-char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
-char collisionPlayerWithBullet(Player *player,Bullet *bullet);
-char collisionPlayerWithBullets(Player *player,BulletList *bulletList);
+int collisionPlayerWithSquare(Player *player,Square *square);
+int canSwimWithSquare(Player *player,Square *square);
+int collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
+int collisionPlayerWithBullet(Player *player,Bullet *bullet);
+int collisionPlayerWithBullets(Player *player,BulletList *bulletList);
 
 void initBulletWithPlayer(Bullet bullet[],Player *player);
 void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage);
 void moveBullets(BulletList *bulletList,Stage *stage);
 void drawBullet(Bullet *bullet);
 void drawBullets(BulletList *bulletList);
-char collisionBulletWithSquare(Bullet *bullet,Square *square);
-char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid);
+int collisionBulletWithSquare(Bullet *bullet,Square *square);
+int collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid);
 
 void initBulletList(BulletList *bulletList);
 void addBullet(BulletList *bulletList,Bullet *bullet);
@@ -128,7 +128,7 @@ void removeBullet(BulletList *bulletList,int index);
 
 void initStage(Stage *stage);
 void drawStage(Stage *stage);
-int getScore(Stage *stage,char color);
+int getScore(Stage *stage,int color);
 
 void initActionFlag(ActionFlag *af);
 void getActionFlag(ActionFlag *af,int mySpecialValue, int myKeyboardValue);

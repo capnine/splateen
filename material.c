@@ -176,7 +176,7 @@ void setCuboidMaxPosition(Cuboid *cuboid){
 	}
 }
 
-void setCuboidIsVisible(Cuboid *cuboid,char isTrue){
+void setCuboidIsVisible(Cuboid *cuboid,int isTrue){
 	cuboid->isVisible = isTrue;
 }
 
@@ -211,7 +211,7 @@ void setCuboidAllParameter(Cuboid *cuboid){
 	setCuboidNormalvec(cuboid);
 }
 
-void paintSquare(Square *square,double xy[],double paintSize,char color){
+void paintSquare(Square *square,double xy[],double paintSize,int color){
 	int i,j;
 	double p,q,r;
 	for (i=0; i<square->paintSquare.numberOfElement[0]; i++) {
@@ -401,7 +401,7 @@ void drawPaintSquare(Square *square){
 	
 }
 
-int getScoreFromSquare(Square *square,char color){
+int getScoreFromSquare(Square *square,int color){
 	int i,j;
 	int sum = 0;
 	for (i = 0; i < square->paintSquare.numberOfElement[0]; i++){
@@ -502,7 +502,7 @@ void printCuboid(Cuboid *cuboid){
 	}
 }
 
-int getScoreFromCuboid(Cuboid *cuboid,char color){
+int getScoreFromCuboid(Cuboid *cuboid,int color){
 	int i;
 	int sum = 0;
 	if (!cuboid->isVisible) {

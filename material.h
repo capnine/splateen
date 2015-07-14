@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct{
 	int numberOfElement[2];//SquareのbasicVectorを基準とした塗るセルの要素数
-	char state[PAINT_MAX_CELLS][PAINT_MAX_CELLS];//濡れる面は最大516*516セルよって大きさは51.6*51.6が限界(0:塗られていない、n:グループnによって塗られている)
+	int state[PAINT_MAX_CELLS][PAINT_MAX_CELLS];//濡れる面は最大516*516セルよって大きさは51.6*51.6が限界(0:塗られていない、n:グループnによって塗られている)
 }PaintSquare;//塗れる面
 
 typedef struct{
@@ -32,7 +32,7 @@ typedef struct{
 
 typedef struct{
 	Square squareFace;
-	char isPaintable;
+	int isPaintable;
 }CuboidFace;//直方体の面(色がぬれる)
 
 typedef struct{
@@ -44,7 +44,7 @@ typedef struct{
 	
 	//draw高速化用
 	int color;
-	char isVisible;
+	int isVisible;
 	GLdouble node[8][3];
 	int face[6][4];
 	GLdouble normalvec[6][3];
@@ -54,9 +54,9 @@ void initNode(Node *node, double x[3]);
 void copyNode(Node *settedNode,Node *sourceNode);
 void initSquareWith4Nodes(Square *square,Node nodes[]);
 void printSquare(Square *squre);
-void paintSquare(Square *square,double xy[],double paintSize,char color);
+void paintSquare(Square *square,double xy[],double paintSize,int color);
 void drawPaintSquare(Square *square);
-int getScoreFromSquare(Square *square,char color);
+int getScoreFromSquare(Square *square,int color);
 double getSwimVelocityRate(Square *square,double position2d[],int player_number);
 
 void initCuboidFace(CuboidFace *cuboidFace,Node nodes[]);
@@ -64,14 +64,14 @@ void initPaintSquare(PaintSquare *paintSquare,double size[]);
 
 void initCuboidWithSize3dAndPosition3d(Cuboid *cuboid,double size[],double position[]);
 void setCuboidMaxPosition(Cuboid *cuboid);
-void setCuboidIsVisible(Cuboid *cuboid,char isTrue);
+void setCuboidIsVisible(Cuboid *cuboid,int isTrue);
 void setCuboidCuboidFace(Cuboid *cuboid);
 void setCuboidNormalvec(Cuboid *cuboid);
 void setCuboidAllParameter(Cuboid *cuboid);
 void drawCuboid(Cuboid *cuboid);
 void drawCuboidPaintableFace(Cuboid *cuboid);
 void printCuboid(Cuboid *cuboid);
-int getScoreFromCuboid(Cuboid *cuboid,char color);
+int getScoreFromCuboid(Cuboid *cuboid,int color);
 
 
 #endif

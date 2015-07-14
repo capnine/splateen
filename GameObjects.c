@@ -152,7 +152,7 @@ void actionPlayer(Player *player,Stage *stage,ActionFlag *af){
 
 void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 	int i;
-	char collision_flag=0;
+	int collision_flag=0;
 	double zero[3] = {0,0,0};
 	double velocity;
 	Vector *nowPosition;//衝突判定後からの復元用
@@ -250,8 +250,8 @@ void swimPlayer(Player *player,Stage *stage,ActionFlag *af){
 	Vector *basicVector;
 	Vector *motionVector;
 	Square *swimsqare;
-	char swim_flag,i,j;
-	char cuboidx=-1,squarex=-1;
+	int swim_flag,i,j;
+	int cuboidx=-1,squarex=-1;
 	double min_distance=100;
 	double posi[3];
 	double velocity = 0.05;
@@ -401,10 +401,10 @@ void drawPlayer(Player *player){
 	glPopMatrix();
 }
 
-char collisionPlayerWithSquare(Player *player,Square *square){
+int collisionPlayerWithSquare(Player *player,Square *square){
 	int i,j;
-	char collision_flag[2];
-	char collision_flag2;
+	int collision_flag[2];
+	int collision_flag2;
 	Matrix *A;
 	Vector *dist;
 	double x[3],b[3],d[3];
@@ -460,12 +460,12 @@ char collisionPlayerWithSquare(Player *player,Square *square){
 	return collision_flag[0] || collision_flag[1] || collision_flag2;
 }
 
-char canSwimWithSquare(Player *player,Square *square){
+int canSwimWithSquare(Player *player,Square *square){
 	int j;
-	char collision_flag;
+	int collision_flag;
 	Matrix *A;
 	Vector *dist;
-	double x[3],b[3],d[3];
+	double x[3],b[3];
 	double squre_x,squre_y,distance,r;
 	
 	r = player->radius;
@@ -497,9 +497,9 @@ char canSwimWithSquare(Player *player,Square *square){
 	return collision_flag;
 }
 
-char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
+int collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
 	int i;
-	char collision_flag;
+	int collision_flag;
 	collision_flag = 0;
 	for (i=0; i<6; i++) {
 		if (collisionPlayerWithSquare(player, &cuboid->paintableFaces[i].squareFace)) {
@@ -510,9 +510,9 @@ char collisionPlayerWithCuboid(Player *player,Cuboid *cuboid){
 	return collision_flag;
 }
 
-char collisionPlayerWithBullet(Player *player,Bullet *bullet){
-	char collision_flag = 0;
-	double a,d,da,r_sum,r_player,r_bullet,sum;
+int collisionPlayerWithBullet(Player *player,Bullet *bullet){
+	int collision_flag = 0;
+	double a=0,d=0,da=0,r_sum=0,r_player=0,r_bullet=0,sum=0;
 	double player_height;
 	Vector *distance;
 	Vector *playerToBullet;//プレイヤーポジション(lowPosi)から球まで
@@ -579,7 +579,7 @@ char collisionPlayerWithBullet(Player *player,Bullet *bullet){
 	return collision_flag;
 }
 
-char collisionPlayerWithBullets(Player *player,BulletList *bulletList){
+int collisionPlayerWithBullets(Player *player,BulletList *bulletList){
 	
 	BulletListElement *bulletx;
 	bulletx = bulletList->firstBulletElement;
@@ -658,7 +658,7 @@ void initBulletWithPlayer(Bullet bullet[],Player *player){
 }
 
 void moveBullet(Bullet *bullet,BulletList *bulletList,Stage *stage){
-	char collision_flag,i;
+	int collision_flag,i;
 	double posi[3];
 	collision_flag = 0;
 	for(i=0;i<3;i++) posi[i] = bullet->position.x[i];
@@ -803,9 +803,9 @@ void drawBullets(BulletList *bulletList){
 //	free(bulletx);
 }
 
-char collisionBulletWithSquare(Bullet *bullet,Square *square){
+int collisionBulletWithSquare(Bullet *bullet,Square *square){
 	int i,j;
-	char collision_flag[2];
+	int collision_flag[2];
 	double squre_x,squre_y,distance,dx,dy,r;
 	Matrix *A;
 	Vector *dist;
@@ -858,8 +858,8 @@ char collisionBulletWithSquare(Bullet *bullet,Square *square){
 	return collision_flag[0] || collision_flag[1] || (d[0][2]*d[1][2]<0);
 }
 
-char collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
-	char collision_flag,i;
+int collisionBulletWithCuboid(Bullet *bullet,Cuboid *cuboid){
+	int collision_flag,i;
 	
 	if (!cuboid->isVisible) {
 		return 0;
@@ -886,7 +886,7 @@ void initStage(Stage *stage){
 	//cuboidsをたくさん設定してもstage->numberOfCuboid分しか描画、判定されません。
 	int i;
 	Cuboid* cuboids = stage->cuboids;
-	char cuboid_isVisible[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+	int cuboid_isVisible[] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
 	double cuboid_size[][3] = {
 		{10,10,10},
 		{20,15,10},
@@ -952,7 +952,7 @@ void drawStage(Stage *stage){
 //	free(cuboids);
 }
 
-int getScore(Stage *stage,char color){
+int getScore(Stage *stage,int color){
 	int i;
 	int sum = 0;
 	for (i=0; i<stage->numberOfCuboid; i++) {
