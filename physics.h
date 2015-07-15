@@ -32,6 +32,7 @@ double distanceBetweenVectors(Vector *a,Vector *b);//ベクトルの距離を返
 void changeLengthOfVector(Vector *a, double rate);//ベクトルの長さをrate倍にする
 void setNormalVector(Vector *settedVecor,Vector *basicVector1,Vector *basicVector2);//2つのベクトルからもとめた法線ベクトルをセットする
 void rotateVectorInXY(Vector *rotatedVector,double angle);//ベクトルをz軸を軸に(xy平面上で)angle度回転させる。
+void rotateVectorWithNormalAxis(Vector *rotatedVector,Vector *normalAxis,double angle);//ベクトルを与えられた軸に対しangle度回転させる。
 void printVector(Vector *a);//ベクトルをコンソールに表示
 
 double getMatrixValue3d(Matrix *A);

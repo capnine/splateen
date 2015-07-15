@@ -15,7 +15,7 @@
 #define STAGE_MAX_Y 128
 #define STAGE_MAX_Z 10
 #define MAX_CUBOIDS 127
-#define DYING_TIME 200
+#define DYING_TIME 100
 
 enum PLAYER_STATE {ON_GRAND,IN_AIR,SWIMMING};
 
@@ -109,7 +109,7 @@ void shotBullet(Player *player,BulletList *bulletList);
 void killPlayer(Player *player,Vector *initPosition);
 void printPlayer(Player *player);
 int collisionPlayerWithSquare(Player *player,Square *square);
-int canSwimWithSquare(Player *player,Square *square);
+int canSwimWithSquare(Player *player,Square *square,double seaPosi[]);
 int collisionPlayerWithCuboid(Player *player,Cuboid *cuboid);
 int collisionPlayerWithBullet(Player *player,Bullet *bullet);
 int collisionPlayerWithBullets(Player *player,BulletList *bulletList);

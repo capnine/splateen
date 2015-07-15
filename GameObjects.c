@@ -116,14 +116,14 @@ void setPlayerSpherePosition(Player *player){
 void setPlayerLookVector(Player *player){
 	Vector *vec;
 	vec = (Vector *)malloc(sizeof(Vector));
-	initVectorWithXYZ(vec, cos(PI*player->lookAngleZ/180), 0, sin(PI*player->lookAngleZ/180));
+	initVectorWithXYZ(vec, cos(PI*(player->lookAngleZ+90)/180), 0, sin(PI*(player->lookAngleZ+90)/180));
 	rotateVectorInXY(vec, player->lookAngleXY);
 	copyVector(&player->lookVector, vec);
 }
 
 void actionPlayer(Player *player,Stage *stage,ActionFlag *af){
 	
-	if (af->swim) {
+	if (af->swim && player->state!=IN_AIR) {
 		player->state = SWIMMING;
 	}else if (player->state == SWIMMING){
 		player->state = IN_AIR;
@@ -249,6 +249,8 @@ void movePlayer(Player *player,Stage *stage,ActionFlag *af){
 void swimPlayer(Player *player,Stage *stage,ActionFlag *af){
 	Vector *basicVector;
 	Vector *motionVector;
+	Vector *motionVector1;
+	Vector *motionVector2;
 	Square *swimsqare;
 	int swim_flag,i,j;
 	int cuboidx=-1,squarex=-1;
@@ -258,20 +260,27 @@ void swimPlayer(Player *player,Stage *stage,ActionFlag *af){
 	double velocity_rate = 1;
 	double angle_radian = 0.0;
 	double inner[2];
+	double seaPosi[3];
+	double motion2d[2];
 	basicVector = (Vector *)malloc(sizeof(Vector)*2);
 	motionVector = (Vector *)malloc(sizeof(Vector));
+	motionVector1 = (Vector *)malloc(sizeof(Vector));
+	motionVector2 = (Vector *)malloc(sizeof(Vector));
 	initVectorWithXYZ(motionVector, 0, 0, 0);
 	
 	swim_flag = 0;
 	for(i=0;i<3;i++) posi[i] = player->position.x[i];
 	for (i=0; i<stage->numberOfCuboid; i++) {
 		for (j=0; j<6; j++) {
-			if (canSwimWithSquare(player, &stage->cuboids[i].paintableFaces[j].squareFace)){
-				swim_flag = 1;
-				if (min_distance > player->swimDistanceToSea) {
-					min_distance = player->swimDistanceToSea;
+			if (canSwimWithSquare(player, &stage->cuboids[i].paintableFaces[j].squareFace,seaPosi)){
+				if (min_distance > fabs(seaPosi[2])) {
+					swim_flag = 1;
+					min_distance = fabs(seaPosi[2]);
 					player->swimmingCuboid = i;
 					player->swimmingSquare = j;
+					player->swimmingPosition2d[0] = seaPosi[0];
+					player->swimmingPosition2d[1] = seaPosi[1];
+					player->swimDistanceToSea = seaPosi[2];
 					cuboidx = i;
 					squarex = j;
 				}
@@ -285,37 +294,58 @@ void swimPlayer(Player *player,Stage *stage,ActionFlag *af){
 //		setPlayerPosition(player, firstPlayerPosition);
 	}else{
 		
-		velocity_rate = getSwimVelocityRate(&stage->cuboids[cuboidx].paintableFaces[squarex].squareFace, player->swimmingPosition2d, 1);
-		
 		swimsqare = &stage->cuboids[cuboidx].paintableFaces[squarex].squareFace;
+		velocity_rate = getSwimVelocityRate(swimsqare, player->swimmingPosition2d, 1);
 		copyVector(&basicVector[0], &swimsqare->basicVector[0]);
 		copyVector(&basicVector[1], &swimsqare->basicVector[1]);
-		if (af->move_right) {
-			addVector(motionVector, &basicVector[0]);
-		}
-		if (af->move_left) {
-			minusVector(motionVector, &basicVector[0]);
-		}
-		if (af->move_up) {
-			addVector(motionVector, &basicVector[1]);
-		}
-		if (af->move_down) {
-			minusVector(motionVector, &basicVector[1]);
-		}
 		
 		setPlayerLookVector(player);
 		inner[0] = innerVector(&player->lookVector, &basicVector[0]);
 		inner[1] = innerVector(&player->lookVector, &basicVector[1]);
 		inner[0] /= sqrt(inner[0]*inner[0]+inner[1]*inner[1]);
+		inner[1] /= sqrt(inner[0]*inner[0]+inner[1]*inner[1]);
 		angle_radian = acos(inner[0]);
 		if (inner[1] < 0) {
 			angle_radian *= -1.0;
 		}
 		
-		rotateVectorInXY(motionVector, angle_radian*180/PI - 90);
+		motion2d[0] = 0.0;
+		motion2d[1] = 0.0;
+		if (af->move_right) {
+			motion2d[1] -= 1.0;
+		}
+		if (af->move_left) {
+			motion2d[1] += 1.0;
+		}
+		if (af->move_up) {
+			motion2d[0] += 1.0;
+		}
+		if (af->move_down) {
+			motion2d[0] -= 1.0;
+		}
+		if (fabs(motion2d[0]*motion2d[1])>0.1) {
+			motion2d[0] /= sqrt(2.0);
+			motion2d[1] /= sqrt(2.0);
+		}
+		
+		copyVector(motionVector1, &basicVector[0]);
+		changeLengthOfVector(motionVector1, motion2d[0]);
+		copyVector(motionVector2, &basicVector[1]);
+		changeLengthOfVector(motionVector2, motion2d[1]);
+		copyVector(motionVector, motionVector1);
+		addVector(motionVector, motionVector2);
+		
+		rotateVectorWithNormalAxis(motionVector, &swimsqare->normalVector, angle_radian);
+		
+		
+		
+		
+//		rotateVectorInXY(motionVector, angle_radian*180/PI - 90);
+//		rotateVectorWithNormalAxis(motionVector, &swimsqare->normalVector, angle_radian);
 		
 		changeLengthOfVector(motionVector, velocity*velocity_rate);
 		addVector(&player->position, motionVector);
+		setPlayerSpherePosition(player);
 	}
 }
 
@@ -460,7 +490,7 @@ int collisionPlayerWithSquare(Player *player,Square *square){
 	return collision_flag[0] || collision_flag[1] || collision_flag2;
 }
 
-int canSwimWithSquare(Player *player,Square *square){
+int canSwimWithSquare(Player *player,Square *square,double seaPosi[]){
 	int j;
 	int collision_flag;
 	Matrix *A;
@@ -480,16 +510,16 @@ int canSwimWithSquare(Player *player,Square *square){
 	squre_y = x[1];
 	distance = -x[2];
 	
-	if ((distance < r )&&
-		(squre_x > 0+r/2 )&&(squre_x < square->size[0]-r/2) &&
-		(squre_y > 0+r/2 )&&(squre_y < square->size[1]-r/2)) {
+	if ((fabs(distance) < r )&&
+		(squre_x > 0.0+r/2 )&&(squre_x < square->size[0]-r/2.0) &&
+		(squre_y > 0.0+r/2 )&&(squre_y < square->size[1]-r/2.0)) {
 		collision_flag = 1;
 	}
 	
 	if (collision_flag) {
-		player->swimmingPosition2d[0] = squre_x;
-		player->swimmingPosition2d[1] = squre_y;
-		player->swimDistanceToSea = distance;
+		seaPosi[0] = squre_x;
+		seaPosi[1] = squre_y;
+		seaPosi[2] = distance;
 	}
 	
 	free(dist);
@@ -897,20 +927,20 @@ void initStage(Stage *stage){
 		{10,10,10},
 		{20,15,10},
 		{30,30,10},
-		{1,10,1},
-		{5,1,1},
-		{1,15,1},
-		{10,1,1},
-		{1,60,1},
-		{11,1,1},
-		{1,15,1},
-		{10,1,1},
-		{1,10,1},
-		{10,1,1},
-		{11,1,1},
-		{1,10,1},
-		{6,1,1},
-		{1,101,1}
+		{1,10,3},
+		{5,1,3},
+		{1,15,3},
+		{10,1,3},
+		{1,60,3},
+		{11,1,3},
+		{1,15,3},
+		{10,1,3},
+		{1,10,3},
+		{10,1,3},
+		{11,1,3},
+		{1,10,3},
+		{6,1,3},
+		{1,101,3}
 	};
 	double cuboid_position[][3] = {
 		{-5,-5,-10},
@@ -919,20 +949,20 @@ void initStage(Stage *stage){
 		{-10,95,-10},
 		{-10,80,-10},
 		{-10,50,-10},
-		{5,-5,0},/**/
-		{6,4,0},
-		{10,5,0},
-		{11,19,0},
-		{20,20,0},
-		{10,80,0},
-		{10,81,0},
-		{0,95,0},
-		{0,96,0},
-		{-10,105,0},/*ステージの一番後ろに戻る*/
-		{-5,-6,0},
-		{-6,-6,0},
-		{-11,4,0},
-		{-11,5,0}
+		{5,-5,-1},/**/
+		{6,4,-1},
+		{10,5,-1},
+		{11,19,-1},
+		{20,20,-1},
+		{10,80,-1},
+		{10,81,-1},
+		{0,95,-1},
+		{0,96,-1},
+		{-10,105,-1},/*ステージの一番後ろに戻る*/
+		{-5,-6,-1},
+		{-6,-6,-1},
+		{-11,4,-1},
+		{-11,5,-1}
 	};
 	stage->numberOfCuboid = 20;
 	stage->size[0] = STAGE_MAX_X;

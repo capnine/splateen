@@ -149,6 +149,37 @@ void rotateVectorInXY(Vector *rotatedVector,double angle){
 	free(buf);
 }
 
+void rotateVectorWithNormalAxis(Vector *rotatedVector,Vector *normalAxis,double angle){
+	Vector *b,*b1,*b2,*b3;
+	double inner;
+	
+	b = (Vector *)malloc(sizeof(Vector));
+	b1 = (Vector *)malloc(sizeof(Vector));
+	b2 = (Vector *)malloc(sizeof(Vector));
+	b3 = (Vector *)malloc(sizeof(Vector));
+	
+	inner = innerVector(rotatedVector,normalAxis);
+	
+	copyVector(b1,normalAxis);
+	changeLengthOfVector(b1,(1.0-cos(angle))*inner);
+	copyVector(b2,rotatedVector);
+	changeLengthOfVector(b2,cos(angle));
+	crossProduct(b3,normalAxis,rotatedVector);
+	changeLengthOfVector(b3,sin(angle));
+	
+	copyVector(b,b1);
+	addVector(b,b2);
+	addVector(b,b3);
+	
+	copyVector(rotatedVector,b);
+	
+	free(b);
+	free(b1);
+	free(b2);
+	free(b3);
+}
+
+
 void printVector(Vector *a){
 	int i;
 	for (i=0; i<3; i++) {
